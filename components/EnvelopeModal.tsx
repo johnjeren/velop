@@ -29,15 +29,15 @@ export default function EnvelopeModal({ envelope, onClose, onSaved }: Props) {
     setLoading(true)
 
     if (envelope) {
-      const { error } = await supabase.from('envelopes').update({
+      const { error } = await (supabase.from('envelopes') as any).update({
         name: name.trim(), icon, color, budget_amount: parseFloat(budget) || 0,
       }).eq('id', envelope.envelope_id)
       if (error) { toast.error(error.message) } else { toast.success('Envelope updated!'); onSaved() }
     } else {
       const { data: { user } } = await supabase.auth.getUser()
       const { data: profile } = await supabase.from('profiles').select('household_id').eq('id', user!.id).single()
-      const { error } = await supabase.from('envelopes').insert({
-        household_id: profile!.household_id!,
+      const { error } = await (supabase.from('envelopes') as any).insert({
+        household_id: (profile as any)!.household_id!,
         name: name.trim(), icon, color, budget_amount: parseFloat(budget) || 0,
       })
       if (error) { toast.error(error.message) } else { toast.success('Envelope created!'); onSaved() }
@@ -48,7 +48,7 @@ export default function EnvelopeModal({ envelope, onClose, onSaved }: Props) {
   async function handleArchive() {
     if (!envelope) return
     setDeleting(true)
-    const { error } = await supabase.from('envelopes').update({ archived: true }).eq('id', envelope.envelope_id)
+    const { error } = await (supabase.from('envelopes') as any).update({ archived: true }).eq('id', envelope.envelope_id)
     if (error) { toast.error(error.message) } else { toast.success('Envelope archived'); onSaved() }
     setDeleting(false)
   }

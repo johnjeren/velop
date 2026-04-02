@@ -33,15 +33,15 @@ export default function AddTransactionModal({ envelopes, defaultEnvelope, onClos
     const { data: profile } = await supabase.from('profiles').select('household_id').eq('id', user!.id).single()
 
     const { error } = await supabase.from('transactions').insert({
-      household_id: profile!.household_id!,
+      household_id: (profile as any)!.household_id!,
       envelope_id: envelopeId,
       created_by: user!.id,
       type,
-      amount: parsed,
-      description,
-      merchant: merchant || null,
-      transaction_date: date,
-    })
+      amount: parseFloat(amount),
+      description: description.trim(),
+      merchant: merchant.trim() || null,
+      transaction_date: new Date().toISOString().split('T')[0],
+    } as any)
 
     if (error) { toast.error(error.message) } else { toast.success('Transaction saved!'); onSaved() }
     setLoading(false)

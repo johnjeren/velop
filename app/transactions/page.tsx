@@ -17,14 +17,14 @@ export default async function TransactionsPage() {
     .eq('id', user.id)
     .single()
 
-  if (!profile || !profile.household_id) {
+  if (!profile || !(profile as any).household_id) {
     redirect('/onboarding')
   }
 
   const { data: transactions } = await supabase
     .from('transactions')
     .select('*, profiles(display_name, avatar_color), envelopes(name, icon)')
-    .eq('household_id', profile.household_id)
+    .eq('household_id', (profile as any).household_id)
     .order('transaction_date', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(100)
@@ -32,7 +32,7 @@ export default async function TransactionsPage() {
   const { data: envelopes } = await supabase
     .from('envelopes')
     .select('id, name, icon')
-    .eq('household_id', profile.household_id)
+    .eq('household_id', (profile as any).household_id)
     .order('name')
 
   return (

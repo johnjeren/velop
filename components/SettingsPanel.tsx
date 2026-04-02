@@ -32,7 +32,7 @@ export default function SettingsPanel({ profile, members }: Props) {
   async function saveHouseholdName() {
     if (!householdName.trim() || !profile?.household_id) return
     setSaving(true)
-    const { error } = await supabase.from('households').update({ name: householdName.trim() }).eq('id', profile.household_id)
+    const { error } = await (supabase.from('households') as any).update({ name: householdName.trim() }).eq('id', profile.household_id)
     if (error) { toast.error(error.message) } else { toast.success('Saved!'); router.refresh() }
     setSaving(false)
   }
@@ -40,7 +40,7 @@ export default function SettingsPanel({ profile, members }: Props) {
   async function saveProfile() {
     if (!displayName.trim() || !profile?.id) return
     setSaving(true)
-    const { error } = await supabase.from('profiles').update({ display_name: displayName.trim(), avatar_color: avatarColor }).eq('id', profile.id)
+    const { error } = await (supabase.from('profiles') as any).update({ display_name: displayName.trim(), avatar_color: avatarColor }).eq('id', profile.id)
     if (error) { toast.error(error.message) } else { toast.success('Profile updated!'); router.refresh() }
     setSaving(false)
   }
@@ -50,13 +50,13 @@ export default function SettingsPanel({ profile, members }: Props) {
     setGeneratingInvite(true)
     const { data, error } = await supabase
       .from('household_invites')
-      .insert({ household_id: profile.household_id, invited_by: profile.id })
+      .insert({ household_id: profile.household_id, invited_by: profile.id } as any)
       .select('token')
       .single()
 
     if (error || !data) { toast.error('Could not generate invite'); setGeneratingInvite(false); return }
 
-    const link = `${window.location.origin}/invite?token=${data.token}`
+    const link = `${window.location.origin}/invite?token=${(data as any).token}`
     setInviteLink(link)
     await navigator.clipboard.writeText(link).catch(() => {})
     toast.success('Invite link copied to clipboard!')

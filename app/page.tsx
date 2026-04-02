@@ -17,20 +17,20 @@ export default async function HomePage() {
     .eq('id', user.id)
     .single()
 
-  if (!profile || !profile.household_id) {
+  if (!profile || !(profile as any).household_id) {
     redirect('/onboarding')
   }
 
   const { data: balances } = await supabase
     .from('envelope_balances')
     .select('*')
-    .eq('household_id', profile.household_id)
+    .eq('household_id', (profile as any).household_id)
     .order('name')
 
   const { data: recentTransactions } = await supabase
     .from('transactions')
     .select('*, profiles(display_name, avatar_color), envelopes(name, icon)')
-    .eq('household_id', profile.household_id)
+    .eq('household_id', (profile as any).household_id)
     .order('created_at', { ascending: false })
     .limit(20)
 

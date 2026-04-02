@@ -39,7 +39,7 @@ export default function TransferModal({ envelopes, onClose, onSaved }: Props) {
 
     const pairId = uuidv4()
     const base = {
-      household_id: profile!.household_id!,
+      household_id: (profile as any)!.household_id!,
       created_by: user!.id,
       amount: parsed,
       description: description || 'Transfer',
@@ -50,7 +50,7 @@ export default function TransferModal({ envelopes, onClose, onSaved }: Props) {
     const { error } = await supabase.from('transactions').insert([
       { ...base, envelope_id: fromId, type: 'transfer_out' },
       { ...base, envelope_id: toId,   type: 'transfer_in'  },
-    ])
+    ] as any)
 
     if (error) { toast.error(error.message) } else { toast.success('Transfer complete!'); onSaved() }
     setLoading(false)

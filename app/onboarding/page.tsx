@@ -20,7 +20,7 @@ export default function OnboardingPage() {
       const { data, error } = await supabase.rpc('create_household_and_profile', {
         p_household_name: householdName,
         p_display_name: displayName,
-      })
+      } as any)
 
       if (error) {
         toast.error('Failed to set up household: ' + error.message)

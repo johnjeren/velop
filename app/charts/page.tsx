@@ -17,21 +17,21 @@ export default async function ChartsPage() {
     .eq('id', user.id)
     .single()
 
-  if (!profile || !profile.household_id) {
+  if (!profile || !(profile as any).household_id) {
     redirect('/onboarding')
   }
 
   const { data: transactions } = await supabase
     .from('transactions')
     .select('*, envelopes(name, icon, color)')
-    .eq('household_id', profile.household_id)
+    .eq('household_id', (profile as any).household_id)
     .order('transaction_date', { ascending: false })
     .limit(500)
 
   const { data: envelopes } = await supabase
     .from('envelope_balances')
     .select('*')
-    .eq('household_id', profile.household_id)
+    .eq('household_id', (profile as any).household_id)
     .order('name')
 
   return (

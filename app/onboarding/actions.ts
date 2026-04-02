@@ -20,7 +20,7 @@ export async function setupHousehold(formData: FormData) {
 
   const { data: household, error: householdError } = await supabase
     .from('households')
-    .insert({ name: householdName })
+    .insert({ name: householdName } as any)
     .select()
     .single()
 
@@ -33,9 +33,9 @@ export async function setupHousehold(formData: FormData) {
     .upsert({
       id: user.id,
       display_name: displayName,
-      household_id: household.id,
+      household_id: (household as any).id,
       avatar_color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`,
-    })
+    } as any)
 
   if (profileError) {
     return { error: 'Failed to update profile: ' + profileError.message }

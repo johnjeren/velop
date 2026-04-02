@@ -64,7 +64,7 @@ export default function EnvelopeDashboard({ balances, recentTransactions }: Prop
       amount: env.budget_amount ?? 0,
       description: 'Monthly budget allocation',
       transaction_date: new Date().toISOString().split('T')[0],
-    })
+    } as any)
 
     if (error) {
       toast.error('Failed to allocate: ' + error.message)

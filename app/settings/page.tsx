@@ -17,21 +17,14 @@ export default async function SettingsPage() {
     .eq('id', user.id)
     .single()
 
-  if (!profile || !profile.household_id) {
+  if (!profile || !(profile as any).household_id) {
     redirect('/onboarding')
   }
 
   const { data: members } = await supabase
     .from('profiles')
     .select('*')
-    .eq('household_id', profile.household_id)
-
-  const { data: invites } = await supabase
-    .from('household_invites')
-    .select('*')
-    .eq('household_id', profile.household_id)
-    .is('used_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .eq('household_id', (profile as any).household_id)
 
   return (
     <AppShell profile={profile}>
@@ -42,7 +35,6 @@ export default async function SettingsPage() {
         <SettingsPanel 
           profile={profile}
           members={members || []}
-          invites={invites || []}
         />
       </div>
     </AppShell>
