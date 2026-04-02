@@ -21,6 +21,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 })
     }
 
+    // Validate it's a data URL
+    if (!image.startsWith('data:image/')) {
+      return NextResponse.json({ error: 'Invalid image format' }, { status: 400 })
+    }
+
+    // Extract the image format and ensure it's supported
+    const formatMatch = image.match(/^data:image\/(png|jpeg|jpg|gif|webp);base64,/)
+    if (!formatMatch) {
+      return NextResponse.json({ 
+        error: 'Unsupported image format. Please use PNG, JPEG, GIF, or WebP.' 
+      }, { status: 400 })
+    }
+
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
@@ -43,6 +56,7 @@ export async function POST(request: NextRequest) {
               type: 'image_url',
               image_url: {
                 url: image,
+                detail: 'low', // Use low detail to reduce costs
               },
             },
           ],
