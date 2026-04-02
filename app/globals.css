@@ -175,19 +175,20 @@ body {
     width: 100%;
     max-width: 100%;
     margin: 0;
-    max-height: calc(100vh - 80px);
+    max-height: 75vh;
     overflow-y: auto;
     border-radius: 16px 16px 0 0;
-    position: fixed;
-    bottom: 60px;
-    left: 0;
-    right: 0;
-    transform: translateY(0);
+    position: relative;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    transform: none;
   }
   
   .modal-overlay {
     align-items: flex-end;
-    overflow-y: auto;
+    padding: 0;
+    padding-bottom: 70px;
   }
   
   /* Ensure modal content is scrollable */
