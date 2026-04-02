@@ -52,24 +52,21 @@ export default function EnvelopeDashboard({ balances, recentTransactions }: Prop
   const totalBudget = balances.reduce((s, e) => s + (e.budget_amount ?? 0), 0)
   const totalBalance = balances.reduce((s, e) => s + (e.balance ?? 0), 0)
 
-  async function allocateBudget(env: EnvelopeBalance) {
+  async function allocateMonthlyBudgets() {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user || balances.length === 0) return
 
-    const { error } = await supabase.from('transactions').insert({
-      household_id: env.household_id,
-      envelope_id: env.envelope_id,
-      created_by: user.id,
-      type: 'allocate',
-      amount: env.budget_amount ?? 0,
-      description: 'Monthly budget allocation',
-      transaction_date: new Date().toISOString().split('T')[0],
+    const householdId = balances[0].household_id
+
+    const { error } = await supabase.rpc('auto_allocate_monthly_budgets', {
+      p_household_id: householdId,
+      p_user_id: user.id,
     } as any)
 
     if (error) {
-      toast.error('Failed to allocate: ' + error.message)
+      toast.error('Failed to allocate budgets: ' + error.message)
     } else {
-      toast.success(`Allocated ${formatMoney(env.budget_amount ?? 0)} to ${env.name}`)
+      toast.success('Monthly budgets allocated to all envelopes!')
       router.refresh()
     }
   }
@@ -84,7 +81,10 @@ export default function EnvelopeDashboard({ balances, recentTransactions }: Prop
             {formatMoney(totalBalance)} available of {formatMoney(totalBudget)} budgeted
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button className="btn btn-ghost" onClick={allocateMonthlyBudgets} title="Allocate monthly budgets to all envelopes">
+            💰 Allocate All
+          </button>
           <button className="btn btn-ghost" onClick={() => setTransferOpen(true)}>↔ Transfer</button>
           <button className="btn btn-ghost" onClick={() => { setEditEnvelope(null); setEnvelopeModalOpen(true) }}>+ Envelope</button>
           <button className="btn btn-primary" onClick={() => { setAddTxEnvelope(null); setAddTxOpen(true) }}>+ Transaction</button>
@@ -150,18 +150,10 @@ export default function EnvelopeDashboard({ balances, recentTransactions }: Prop
 
               <BalanceBar balance={env.balance} budget={env.budget_amount ?? 0} />
 
-              <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+              <div style={{ marginTop: '12px' }}>
                 <button
                   className="btn btn-ghost"
-                  style={{ flex: 1, justifyContent: 'center', fontSize: '13px' }}
-                  onClick={() => allocateBudget(env)}
-                  title={`Allocate ${formatMoney(env.budget_amount ?? 0)}`}
-                >
-                  💰 Allocate
-                </button>
-                <button
-                  className="btn btn-ghost"
-                  style={{ flex: 1, justifyContent: 'center', fontSize: '13px' }}
+                  style={{ width: '100%', justifyContent: 'center', fontSize: '13px' }}
                   onClick={() => { setAddTxEnvelope(env); setAddTxOpen(true) }}
                 >
                   + Transaction
