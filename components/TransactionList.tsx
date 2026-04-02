@@ -27,10 +27,10 @@ function formatDate(d: string) {
 }
 
 const TYPE_LABEL: Record<string, string> = {
-  spend: '💸 Spend',
-  allocate: '💰 Allocate',
-  transfer_out: '↗ Transfer out',
-  transfer_in: '↙ Transfer in',
+  spend:        'Spend',
+  allocate:     'Allocate',
+  transfer_out: 'Transfer Out',
+  transfer_in:  'Transfer In',
 }
 
 export default function TransactionList({ transactions, envelopes }: Props) {
@@ -63,7 +63,6 @@ export default function TransactionList({ transactions, envelopes }: Props) {
     setDeleting(null)
   }
 
-  // Convert envelopes prop to EnvelopeBalance shape for modal
   const envelopeBalances: EnvelopeBalance[] = envelopes.map(e => ({
     envelope_id: e.id,
     household_id: '',
@@ -77,29 +76,49 @@ export default function TransactionList({ transactions, envelopes }: Props) {
 
   return (
     <div className="animate-fade-in">
+
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-        <h1 style={{ fontSize: '26px', fontWeight: '800', letterSpacing: '-0.5px' }}>Transactions</h1>
-        <button className="btn btn-primary" onClick={() => setAddOpen(true)}>+ Add transaction</button>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '22px',
+          letterSpacing: '-0.01em',
+          color: 'var(--text-display)',
+        }}>
+          Transactions
+        </div>
+        <button className="btn btn-primary" onClick={() => setAddOpen(true)}>
+          + Add
+        </button>
       </div>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
         <input
           className="input"
           type="text"
           placeholder="Search…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ maxWidth: '200px' }}
+          style={{ maxWidth: '180px' }}
         />
-        <select className="input" value={filterEnvelope} onChange={e => setFilterEnvelope(e.target.value)} style={{ maxWidth: '180px' }}>
+        <select
+          className="input"
+          value={filterEnvelope}
+          onChange={e => setFilterEnvelope(e.target.value)}
+          style={{ maxWidth: '180px' }}
+        >
           <option value="">All envelopes</option>
           {envelopes.map(env => (
-            <option key={env.id} value={env.id}>{env.icon} {env.name}</option>
+            <option key={env.id} value={env.id}>{env.name}</option>
           ))}
         </select>
-        <select className="input" value={filterType} onChange={e => setFilterType(e.target.value)} style={{ maxWidth: '160px' }}>
+        <select
+          className="input"
+          value={filterType}
+          onChange={e => setFilterType(e.target.value)}
+          style={{ maxWidth: '160px' }}
+        >
           <option value="">All types</option>
           <option value="spend">Spend</option>
           <option value="allocate">Allocate</option>
@@ -110,8 +129,16 @@ export default function TransactionList({ transactions, envelopes }: Props) {
 
       {/* List */}
       {filtered.length === 0 ? (
-        <div className="card" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>
-          No transactions found
+        <div className="card" style={{ padding: '64px 32px', textAlign: 'center' }}>
+          <div style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '11px',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'var(--text-disabled)',
+          }}>
+            No transactions found
+          </div>
         </div>
       ) : (
         <div className="card" style={{ overflow: 'hidden' }}>
@@ -119,39 +146,56 @@ export default function TransactionList({ transactions, envelopes }: Props) {
             <div
               key={tx.id}
               style={{
-                display: 'flex', alignItems: 'center', gap: '12px',
-                padding: '14px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 20px',
                 borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none',
               }}
             >
               {/* Avatar */}
               <div style={{
-                width: '34px', height: '34px', borderRadius: '50%',
-                background: tx.profiles?.avatar_color ?? '#6366f1',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontSize: '13px', fontWeight: '700', flexShrink: 0,
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                background: 'var(--surface-raised)',
+                border: '1px solid var(--border-visible)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '10px',
+                color: 'var(--text-secondary)',
+                flexShrink: 0,
               }}>
                 {tx.profiles?.display_name.charAt(0).toUpperCase()}
               </div>
 
               {/* Info */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: '500', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: '14px', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {tx.description || tx.merchant || TYPE_LABEL[tx.type]}
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  {tx.envelopes?.icon} {tx.envelopes?.name}
-                  &nbsp;·&nbsp;{formatDate(tx.transaction_date)}
-                  &nbsp;·&nbsp;{tx.profiles?.display_name}
+                <div style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '10px',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  color: 'var(--text-disabled)',
+                  marginTop: '2px',
+                }}>
+                  {tx.envelopes?.name} · {formatDate(tx.transaction_date)} · {tx.profiles?.display_name}
                 </div>
               </div>
 
               {/* Amount */}
               <div className="amount" style={{
-                fontSize: '15px', fontWeight: '600',
+                fontSize: '14px',
                 color: tx.type === 'allocate' || tx.type === 'transfer_in'
                   ? 'var(--success)'
-                  : tx.type === 'spend' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  : tx.type === 'spend'
+                  ? 'var(--text-primary)'
+                  : 'var(--text-secondary)',
               }}>
                 {tx.type === 'spend' || tx.type === 'transfer_out' ? '−' : '+'}
                 {formatMoney(tx.amount)}
@@ -162,9 +206,15 @@ export default function TransactionList({ transactions, envelopes }: Props) {
                 onClick={() => deleteTransaction(tx.id)}
                 disabled={deleting === tx.id}
                 style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--text-muted)', fontSize: '16px', padding: '4px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '14px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-disabled)',
+                  padding: '4px 8px',
                   opacity: deleting === tx.id ? 0.4 : 1,
+                  letterSpacing: '0',
                 }}
                 title="Delete"
               >

@@ -1,17 +1,18 @@
 import type { Metadata } from 'next'
-import { DM_Sans, DM_Mono } from 'next/font/google'
+import { Space_Grotesk, Space_Mono } from 'next/font/google'
 import { Toaster } from 'sonner'
 import './globals.css'
 
-const dmSans = DM_Sans({
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
   variable: '--font-sans',
+  weight: ['300', '400', '500', '700'],
   display: 'swap',
 })
 
-const dmMono = DM_Mono({
+const spaceMono = Space_Mono({
   subsets: ['latin'],
-  weight: ['400', '500'],
+  weight: ['400', '700'],
   variable: '--font-mono',
   display: 'swap',
 })
@@ -20,10 +21,10 @@ export const metadata: Metadata = {
   title: 'Envelope Budget',
   description: 'Shared envelope budgeting for your household',
   manifest: '/manifest.json',
-  themeColor: '#6366f1',
+  themeColor: '#000000',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title: 'Envelope',
   },
   viewport: {
@@ -36,10 +37,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${dmMono.variable}`}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${spaceMono.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link href="https://fonts.googleapis.com/css2?family=Doto:wght@400..900&display=swap" rel="stylesheet" />
+      </head>
       <body>
         {children}
-        <Toaster position="bottom-right" richColors />
+        <Toaster position="bottom-right" theme="dark" />
       </body>
     </html>
   )
