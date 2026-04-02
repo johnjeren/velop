@@ -175,17 +175,24 @@ body {
     width: 100%;
     max-width: 100%;
     margin: 0;
-    max-height: 85vh;
+    max-height: 90vh;
     overflow-y: auto;
     border-radius: 16px 16px 0 0;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
+    transform: translateY(0);
   }
   
   .modal-overlay {
     align-items: flex-end;
+    overflow-y: auto;
+  }
+  
+  /* Ensure modal content is scrollable */
+  .modal form {
+    padding-bottom: 20px;
   }
   
   h1 {
