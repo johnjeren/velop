@@ -39,28 +39,43 @@ export default function AddTransactionModal({ envelopes, defaultEnvelope, onClos
       reader.onload = async () => {
         const base64Image = reader.result as string
 
-        // Call API to parse receipt
-        const response = await fetch('/api/parse-receipt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64Image }),
-        })
+        try {
+          // Call API to parse receipt
+          const response = await fetch('/api/parse-receipt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64Image }),
+          })
 
-        const data = await response.json()
-
-        if (response.ok) {
-          // Auto-fill form with receipt data
-          if (data.merchant) setMerchant(data.merchant)
-          if (data.amount) setAmount(data.amount.toString())
-          if (data.date) setDate(data.date)
-          if (data.items && data.items.length > 0) {
-            setDescription(data.items.join(', '))
+          // Check if response is JSON
+          const contentType = response.headers.get('content-type')
+          if (!contentType || !contentType.includes('application/json')) {
+            toast.dismiss()
+            toast.error('Server error - please check API configuration')
+            console.error('Non-JSON response from API:', await response.text())
+            return
           }
+
+          const data = await response.json()
+
+          if (response.ok) {
+            // Auto-fill form with receipt data
+            if (data.merchant) setMerchant(data.merchant)
+            if (data.amount) setAmount(data.amount.toString())
+            if (data.date) setDate(data.date)
+            if (data.items && data.items.length > 0) {
+              setDescription(data.items.join(', '))
+            }
+            toast.dismiss()
+            toast.success('Receipt scanned! Review and save.')
+          } else {
+            toast.dismiss()
+            toast.error(data.error || 'Failed to scan receipt')
+          }
+        } catch (err: any) {
           toast.dismiss()
-          toast.success('Receipt scanned! Review and save.')
-        } else {
-          toast.dismiss()
-          toast.error(data.error || 'Failed to scan receipt')
+          toast.error('Failed to parse receipt: ' + err.message)
+          console.error('Receipt parsing error:', err)
         }
       }
 
