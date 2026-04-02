@@ -1,0 +1,7 @@
+node_modules
+.next
+.env
+.env.local
+*.sql
+fix-rls*.sql
+create-household-function.sql
