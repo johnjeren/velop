@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import type { EnvelopeBalance } from '@/lib/supabase/database.types'
+import heic2any from 'heic2any'
 
 interface Props {
   envelopes: EnvelopeBalance[]
@@ -25,13 +26,34 @@ export default function AddTransactionModal({ envelopes, defaultEnvelope, onClos
   const [scanning, setScanning] = useState(false)
 
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
+    let file = e.target.files?.[0]
     if (!file) return
 
     setScanning(true)
     toast.loading('Scanning receipt...')
 
     try {
+      // Convert HEIC to JPEG if needed
+      if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic')) {
+        try {
+          const convertedBlob = await heic2any({
+            blob: file,
+            toType: 'image/jpeg',
+            quality: 0.8,
+          })
+          file = new File(
+            [Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob],
+            file.name.replace(/\.heic$/i, '.jpg'),
+            { type: 'image/jpeg' }
+          )
+        } catch (conversionError) {
+          toast.dismiss()
+          toast.error('Failed to convert HEIC image. Please use a different format.')
+          setScanning(false)
+          return
+        }
+      }
+
       // Convert image to base64
       const reader = new FileReader()
       reader.readAsDataURL(file)
@@ -163,7 +185,7 @@ export default function AddTransactionModal({ envelopes, defaultEnvelope, onClos
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+              accept="image/*"
               capture="environment"
               onChange={handlePhotoUpload}
               style={{ display: 'none' }}
