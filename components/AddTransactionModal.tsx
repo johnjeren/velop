@@ -38,6 +38,9 @@ export default function AddTransactionModal({ envelopes, defaultEnvelope, onClos
       
       reader.onload = async () => {
         const base64Image = reader.result as string
+        
+        // Log the image format for debugging
+        console.log('Image format:', base64Image.substring(0, 50))
 
         try {
           // Call API to parse receipt
@@ -160,7 +163,7 @@ export default function AddTransactionModal({ envelopes, defaultEnvelope, onClos
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
               capture="environment"
               onChange={handlePhotoUpload}
               style={{ display: 'none' }}
