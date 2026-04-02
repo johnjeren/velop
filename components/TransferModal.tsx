@@ -58,8 +58,24 @@ export default function TransferModal({ envelopes, onClose, onSaved }: Props) {
 
   return (
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="modal">
-        <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '24px' }}>↔ Transfer Between Envelopes</h2>
+      <div className="modal" style={{ padding: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '700', margin: 0 }}>↔ Transfer Between Envelopes</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '24px',
+              cursor: 'pointer',
+              padding: '4px',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            ✕
+          </button>
+        </div>
 
         <form onSubmit={handleTransfer} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>

@@ -172,11 +172,20 @@ body {
   }
   
   .modal {
-    width: 95%;
-    max-width: 95%;
-    margin: 8px;
-    max-height: 90vh;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    max-height: 85vh;
     overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  
+  .modal-overlay {
+    align-items: flex-end;
   }
   
   h1 {

@@ -49,9 +49,25 @@ export default function AddTransactionModal({ envelopes, defaultEnvelope, onClos
 
   return (
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="modal">
-        <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '24px' }}>Add Transaction</h2>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div className="modal" style={{ padding: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '700', margin: 0 }}>Add Transaction</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '24px',
+              cursor: 'pointer',
+              padding: '4px',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            ✕
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
           {/* Type toggle */}
           <div style={{ display: 'flex', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', padding: '4px', gap: '4px' }}>
