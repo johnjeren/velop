@@ -4,7 +4,6 @@ import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import type { EnvelopeBalance } from '@/lib/supabase/database.types'
-import heic2any from 'heic2any'
 
 interface Props {
   envelopes: EnvelopeBalance[]
@@ -36,6 +35,7 @@ export default function AddTransactionModal({ envelopes, defaultEnvelope, onClos
       // Convert HEIC to JPEG if needed
       if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic')) {
         try {
+          const heic2any = (await import('heic2any')).default
           const convertedBlob = await heic2any({
             blob: file,
             toType: 'image/jpeg',

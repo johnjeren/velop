@@ -70,8 +70,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No response from OpenAI' }, { status: 500 })
     }
 
+    // Strip markdown code blocks if present
+    let jsonContent = content.trim()
+    if (jsonContent.startsWith('```json')) {
+      jsonContent = jsonContent.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+    } else if (jsonContent.startsWith('```')) {
+      jsonContent = jsonContent.replace(/^```\s*/, '').replace(/\s*```$/, '')
+    }
+
     // Parse the JSON response
-    const receiptData = JSON.parse(content)
+    const receiptData = JSON.parse(jsonContent)
 
     return NextResponse.json(receiptData)
   } catch (error: any) {
