@@ -183,8 +183,16 @@ export default function TransactionList({ transactions, envelopes }: Props) {
                   textTransform: 'uppercase',
                   color: 'var(--text-disabled)',
                   marginTop: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
                 }}>
                   {tx.envelopes?.name} · {formatDate(tx.transaction_date)} · {tx.profiles?.display_name}
+                  {(tx as any).receipt_url && (
+                    <a href={(tx as any).receipt_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: '11px' }} title="View Receipt">
+                      📎
+                    </a>
+                  )}
                 </div>
               </div>
 

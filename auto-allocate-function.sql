@@ -10,28 +10,23 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-  -- Insert allocation transactions for all active envelopes in the household
-  INSERT INTO transactions (
+  -- Insert records into budget_periods for the current month
+  INSERT INTO budget_periods (
     household_id,
     envelope_id,
-    created_by,
-    type,
-    amount,
-    description,
-    transaction_date
+    period_month,
+    allocated
   )
   SELECT
     e.household_id,
     e.id,
-    p_user_id,
-    'allocate',
-    e.budget_amount,
-    'Monthly budget allocation',
-    CURRENT_DATE
+    date_trunc('month', CURRENT_DATE)::date,
+    e.budget_amount
   FROM envelopes e
   WHERE e.household_id = p_household_id
     AND e.archived = false
-    AND e.budget_amount > 0;
+    AND e.budget_amount > 0
+  ON CONFLICT (envelope_id, period_month) DO NOTHING;
 END;
 $$;
 

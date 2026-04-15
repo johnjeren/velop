@@ -21,24 +21,47 @@ export default async function HomePage() {
     redirect('/onboarding')
   }
 
+  const householdId = (profile as any).household_id
+
   const { data: balances } = await supabase
     .from('envelope_balances')
     .select('*')
-    .eq('household_id', (profile as any).household_id)
+    .eq('household_id', householdId)
     .order('name')
 
   const { data: recentTransactions } = await supabase
     .from('transactions')
     .select('*, profiles(display_name, avatar_color), envelopes(name, icon)')
-    .eq('household_id', (profile as any).household_id)
+    .eq('household_id', householdId)
     .order('created_at', { ascending: false })
     .limit(20)
+
+  // Bills summary for dashboard widget
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
+  const today = now.toISOString().split('T')[0]
+
+  const { data: unpaidInstances } = await supabase
+    .from('bill_instances')
+    .select('amount, due_date')
+    .eq('household_id', householdId)
+    .eq('status', 'unpaid')
+    .gte('due_date', monthStart)
+    .lte('due_date', monthEnd)
+
+  const billsSummary = unpaidInstances && unpaidInstances.length > 0 ? {
+    totalDue: unpaidInstances.reduce((s, i) => s + Number(i.amount), 0),
+    unpaidCount: unpaidInstances.length,
+    overdueCount: unpaidInstances.filter(i => i.due_date < today).length,
+  } : null
 
   return (
     <AppShell profile={profile}>
       <EnvelopeDashboard 
         balances={balances || []} 
-        recentTransactions={recentTransactions || []} 
+        recentTransactions={recentTransactions || []}
+        billsSummary={billsSummary}
       />
     </AppShell>
   )

@@ -73,6 +73,7 @@ create table transactions (
   description     text not null default '',
   merchant        text,
   transfer_pair_id uuid,                               -- links transfer_out ↔ transfer_in rows
+  receipt_url      text,
   transaction_date date not null default current_date,
   created_at      timestamptz not null default now()
 );
@@ -100,26 +101,42 @@ create table budget_periods (
 -- VIEWS
 -- ============================================================
 
--- Current balance per envelope (all-time)
+-- Current balance per envelope (period-aware)
 create or replace view envelope_balances as
+with period_allocations as (
+  select envelope_id, sum(allocated) as total_allocated
+  from budget_periods
+  group by envelope_id
+),
+tx_sums as (
+  select envelope_id, sum(
+    case
+      when type in ('allocate', 'transfer_in') then amount
+      when type in ('spend', 'transfer_out')   then -amount
+      else 0
+    end
+  ) as net_transactions
+  from transactions
+  group by envelope_id
+),
+current_period as (
+  select envelope_id, allocated as current_month_allocated
+  from budget_periods
+  where period_month = date_trunc('month', CURRENT_DATE)::date
+)
 select
   e.id as envelope_id,
   e.household_id,
   e.name,
   e.icon,
   e.color,
-  e.budget_amount,
+  coalesce(cp.current_month_allocated, e.budget_amount) as budget_amount,
   e.archived,
-  coalesce(sum(
-    case
-      when t.type in ('allocate', 'transfer_in') then t.amount
-      when t.type in ('spend', 'transfer_out')   then -t.amount
-      else 0
-    end
-  ), 0) as balance
+  coalesce(pa.total_allocated, 0) + coalesce(ts.net_transactions, 0) as balance
 from envelopes e
-left join transactions t on t.envelope_id = e.id
-group by e.id;
+left join period_allocations pa on pa.envelope_id = e.id
+left join tx_sums ts on ts.envelope_id = e.id
+left join current_period cp on cp.envelope_id = e.id;
 
 -- ============================================================
 -- ROW LEVEL SECURITY
@@ -193,3 +210,160 @@ $$;
 create trigger envelope_updated
   before update on envelopes
   for each row execute procedure touch_envelope();
+
+-- Auto-allocate on envelope creation
+create or replace function handle_new_envelope()
+returns trigger language plpgsql security definer as $$
+begin
+  if new.budget_amount > 0 then
+    insert into budget_periods (household_id, envelope_id, period_month, allocated)
+    values (new.household_id, new.id, date_trunc('month', CURRENT_DATE)::date, new.budget_amount)
+    on conflict (envelope_id, period_month) do nothing;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger on_envelope_created
+  after insert on envelopes
+  for each row execute procedure handle_new_envelope();
+
+-- ============================================================
+-- CRON AUTOMATION (Requires pg_cron extension)
+-- ============================================================
+create extension if not exists pg_cron;
+
+CREATE OR REPLACE FUNCTION cron_allocate_all_budgets()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  INSERT INTO budget_periods (
+    household_id,
+    envelope_id,
+    period_month,
+    allocated
+  )
+  SELECT
+    household_id,
+    id,
+    date_trunc('month', CURRENT_DATE)::date,
+    budget_amount
+  FROM envelopes
+  WHERE archived = false
+    AND budget_amount > 0
+  ON CONFLICT (envelope_id, period_month) DO NOTHING;
+END;
+$$;
+
+-- Run securely on the 1st of every month at midnight
+select cron.schedule(
+  'monthly-budget-allocation',
+  '0 0 1 * *',
+  'SELECT public.cron_allocate_all_budgets();'
+);
+
+-- ============================================================
+-- REALTIME CONFIGURATION
+-- ============================================================
+-- Enable Realtime for relevant tables
+alter publication supabase_realtime add table envelopes, transactions;
+
+-- ============================================================
+-- V2 MIGRATION SCRIPT (Execute once if upgrading from V1)
+-- Moves old auto-allocations to budget_periods
+-- ============================================================
+insert into budget_periods (household_id, envelope_id, period_month, allocated)
+select household_id, envelope_id, date_trunc('month', transaction_date)::date, sum(amount)
+from transactions
+where type = 'allocate' and description = 'Monthly budget allocation'
+group by household_id, envelope_id, date_trunc('month', transaction_date)::date
+on conflict (envelope_id, period_month) do update set allocated = budget_periods.allocated + excluded.allocated;
+
+delete from transactions 
+where type = 'allocate' and description = 'Monthly budget allocation';
+
+-- ============================================================
+-- PHASE 5 STORAGE & SCHEMA UPDATE
+-- ============================================================
+alter table transactions add column if not exists receipt_url text;
+
+insert into storage.buckets (id, name, public)
+values ('receipts', 'receipts', true)
+on conflict (id) do nothing;
+
+create policy "receipts upload" on storage.objects for insert
+  with check (bucket_id = 'receipts');
+
+create policy "receipts select" on storage.objects for select
+  using (bucket_id = 'receipts');
+
+-- ============================================================
+-- PHASE 7: RECURRING BILLS
+-- ============================================================
+
+-- Recurring bill definitions (one per bill type)
+create table recurring_bills (
+  id             uuid primary key default gen_random_uuid(),
+  household_id   uuid not null references households(id) on delete cascade,
+  name           text not null,
+  icon           text not null default '🔁',
+  amount         numeric(12,2) not null,
+  due_day        int not null default 1,
+  envelope_id    uuid references envelopes(id) on delete set null,
+  auto_pay       boolean not null default false,
+  notes          text,
+  active         boolean not null default true,
+  created_at     timestamptz not null default now()
+);
+
+-- Monthly bill instances (one per bill per month)
+create table bill_instances (
+  id              uuid primary key default gen_random_uuid(),
+  household_id    uuid not null references households(id) on delete cascade,
+  bill_id         uuid not null references recurring_bills(id) on delete cascade,
+  due_date        date not null,
+  amount          numeric(12,2) not null,
+  status          text not null default 'unpaid' check (status in ('unpaid', 'paid', 'skipped')),
+  paid_at         timestamptz,
+  transaction_id  uuid references transactions(id) on delete set null,
+  created_at      timestamptz not null default now(),
+  unique(bill_id, due_date)
+);
+
+-- RLS
+alter table recurring_bills enable row level security;
+alter table bill_instances   enable row level security;
+
+create policy "household bill access" on recurring_bills for all
+  using (household_id = my_household_id());
+
+create policy "household bill instance access" on bill_instances for all
+  using (household_id = my_household_id());
+
+-- pg_cron: auto-generate monthly bill instances on the 1st of each month
+create or replace function generate_monthly_bills()
+returns void language plpgsql security definer as $$
+begin
+  insert into bill_instances (household_id, bill_id, due_date, amount)
+  select
+    household_id,
+    id,
+    make_date(
+      extract(year  from current_date)::int,
+      extract(month from current_date)::int,
+      least(due_day, 28)
+    ),
+    amount
+  from recurring_bills
+  where active = true
+  on conflict (bill_id, due_date) do nothing;
+end;
+$$;
+
+select cron.schedule(
+  'monthly-bill-generation',
+  '0 0 1 * *',
+  'SELECT public.generate_monthly_bills();'
+);

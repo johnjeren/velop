@@ -1,11 +1,11 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts'
-import { format, startOfMonth, parseISO } from 'date-fns'
+import { format, startOfMonth, parseISO, isAfter, subDays, subMonths } from 'date-fns'
 import type { Transaction, EnvelopeBalance } from '@/lib/supabase/database.types'
 
 type TxWithEnvelope = Transaction & {
@@ -22,7 +22,30 @@ function formatMoney(n: number) {
 }
 
 export default function SpendingCharts({ transactions, envelopes }: Props) {
-  const spends = transactions.filter(tx => tx.type === 'spend')
+  const [dateFilter, setDateFilter] = useState<'all' | '30d' | 'this_month' | '6m'>('6m')
+  const [envelopeFilter, setEnvelopeFilter] = useState<string>('all')
+
+  const spends = useMemo(() => {
+    let filtered = transactions.filter(tx => tx.type === 'spend')
+    
+    if (envelopeFilter !== 'all') {
+      filtered = filtered.filter(tx => tx.envelope_id === envelopeFilter)
+    }
+
+    const now = new Date()
+    if (dateFilter === '30d') {
+      const cutoff = subDays(now, 30)
+      filtered = filtered.filter(tx => isAfter(parseISO(tx.transaction_date), cutoff))
+    } else if (dateFilter === 'this_month') {
+      const start = startOfMonth(now)
+      filtered = filtered.filter(tx => isAfter(parseISO(tx.transaction_date), start))
+    } else if (dateFilter === '6m') {
+      const cutoff = subMonths(now, 6)
+      filtered = filtered.filter(tx => isAfter(parseISO(tx.transaction_date), cutoff))
+    }
+
+    return filtered
+  }, [transactions, dateFilter, envelopeFilter])
 
   // Monthly spend totals (last 6 months)
   const monthlyData = useMemo(() => {
@@ -63,12 +86,38 @@ export default function SpendingCharts({ transactions, envelopes }: Props) {
 
   return (
     <div className="animate-fade-in">
-      <h1 style={{ fontSize: '26px', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '28px' }}>Spending Charts</h1>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: '800', letterSpacing: '-0.5px', margin: 0 }}>Spending Overview</h1>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <select 
+            className="input" 
+            style={{ padding: '8px 12px', fontSize: '13px', width: 'auto', minWidth: '160px', height: '36px' }}
+            value={envelopeFilter}
+            onChange={e => setEnvelopeFilter(e.target.value)}
+          >
+            <option value="all">All Envelopes</option>
+            {envelopes.filter(e => !e.archived).map(e => (
+              <option key={e.envelope_id} value={e.envelope_id}>{e.icon} {e.name}</option>
+            ))}
+          </select>
+          <select 
+            className="input" 
+            style={{ padding: '8px 12px', fontSize: '13px', width: 'auto', minWidth: '140px', height: '36px' }}
+            value={dateFilter}
+            onChange={e => setDateFilter(e.target.value as any)}
+          >
+            <option value="this_month">This Month</option>
+            <option value="30d">Last 30 Days</option>
+            <option value="6m">Last 6 Months</option>
+            <option value="all">All Time</option>
+          </select>
+        </div>
+      </div>
 
       {/* Summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '14px', marginBottom: '32px' }}>
         {[
-          { label: 'Total spent (6mo)', value: formatMoney(totalSpent), icon: '💸' },
+          { label: 'Total spent', value: formatMoney(totalSpent), icon: '💸' },
           { label: 'Monthly budget', value: formatMoney(totalBudget), icon: '📋' },
           { label: 'Avg per month', value: formatMoney(monthlyData.length ? totalSpent / monthlyData.length : 0), icon: '📅' },
           { label: 'Active envelopes', value: String(envelopes.filter(e => !e.archived).length), icon: '💌' },

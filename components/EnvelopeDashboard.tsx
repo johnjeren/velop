@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -9,12 +9,19 @@ import AddTransactionModal from './AddTransactionModal'
 import EnvelopeModal from './EnvelopeModal'
 import TransferModal from './TransferModal'
 
+interface BillSummary {
+  totalDue: number
+  unpaidCount: number
+  overdueCount: number
+}
+
 interface Props {
   balances: EnvelopeBalance[]
   recentTransactions: (Transaction & {
     profiles: { display_name: string; avatar_color: string } | null
     envelopes: { name: string; icon: string } | null
   })[]
+  billsSummary?: BillSummary | null
 }
 
 function formatMoney(n: number) {
@@ -42,9 +49,33 @@ function SegmentedBar({ balance, budget }: { balance: number; budget: number }) 
   )
 }
 
-export default function EnvelopeDashboard({ balances, recentTransactions }: Props) {
+export default function EnvelopeDashboard({ balances, recentTransactions, billsSummary }: Props) {
   const router = useRouter()
   const supabase = createClient()
+
+  // Realtime Dashboard Sync
+  useEffect(() => {
+    const channel = supabase.channel('dashboard-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'transactions' },
+        () => {
+          router.refresh()
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'envelopes' },
+        () => {
+          router.refresh()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [router, supabase])
 
   const [addTxOpen, setAddTxOpen] = useState(false)
   const [addTxEnvelope, setAddTxEnvelope] = useState<EnvelopeBalance | null>(null)
@@ -55,23 +86,6 @@ export default function EnvelopeDashboard({ balances, recentTransactions }: Prop
   const totalBudget = balances.reduce((s, e) => s + (e.budget_amount ?? 0), 0)
   const totalBalance = balances.reduce((s, e) => s + (e.balance ?? 0), 0)
 
-  async function allocateMonthlyBudgets() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || balances.length === 0) return
-
-    const householdId = balances[0].household_id
-    const { error } = await supabase.rpc('auto_allocate_monthly_budgets', {
-      p_household_id: householdId,
-      p_user_id: user.id,
-    } as any)
-
-    if (error) {
-      toast.error('Failed to allocate: ' + error.message)
-    } else {
-      toast.success('Budgets allocated')
-      router.refresh()
-    }
-  }
 
   return (
     <div className="animate-fade-in">
@@ -115,9 +129,7 @@ export default function EnvelopeDashboard({ balances, recentTransactions }: Prop
         <button className="btn btn-primary" onClick={() => { setAddTxEnvelope(null); setAddTxOpen(true) }}>
           + Transaction
         </button>
-        <button className="btn btn-ghost" onClick={allocateMonthlyBudgets}>
-          Allocate All
-        </button>
+
         <button className="btn btn-ghost" onClick={() => setTransferOpen(true)}>
           Transfer
         </button>
@@ -232,6 +244,31 @@ export default function EnvelopeDashboard({ balances, recentTransactions }: Prop
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Bills summary widget */}
+      {billsSummary && billsSummary.unpaidCount > 0 && (
+        <div style={{ marginBottom: '32px' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+            Bills This Month
+          </div>
+          <div className="card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', borderLeft: `3px solid ${billsSummary.overdueCount > 0 ? 'var(--accent)' : 'var(--warning)'}` }}>
+            <div style={{ fontSize: '24px' }}>🔁</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '14px', color: 'var(--text-primary)' }}>
+                {billsSummary.overdueCount > 0
+                  ? `${billsSummary.overdueCount} bill${billsSummary.overdueCount !== 1 ? 's' : ''} overdue!`
+                  : `${billsSummary.unpaidCount} bill${billsSummary.unpaidCount !== 1 ? 's' : ''} unpaid this month`}
+              </div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-disabled)', marginTop: '2px' }}>
+                ${billsSummary.totalDue.toFixed(2)} remaining
+              </div>
+            </div>
+            <a href="/bills" style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--accent)', textDecoration: 'none' }}>
+              View Bills →
+            </a>
+          </div>
         </div>
       )}
 

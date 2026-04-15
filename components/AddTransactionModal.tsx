@@ -23,10 +23,12 @@ export default function AddTransactionModal({ envelopes, defaultEnvelope, onClos
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [loading, setLoading] = useState(false)
   const [scanning, setScanning] = useState(false)
+  const [receiptFile, setReceiptFile] = useState<File | null>(null)
 
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     let file = e.target.files?.[0]
     if (!file) return
+    setReceiptFile(file)
 
     setScanning(true)
     toast.loading('Scanning receipt...')
@@ -127,9 +129,28 @@ export default function AddTransactionModal({ envelopes, defaultEnvelope, onClos
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     const { data: profile } = await supabase.from('profiles').select('household_id').eq('id', user!.id).single()
+    const householdId = (profile as any)!.household_id!
+
+    let uploadedUrl = null
+    if (receiptFile) {
+      toast.loading('Uploading receipt...', { id: 'upload' })
+      const fileExt = receiptFile.name.split('.').pop()
+      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`
+      const filePath = `${householdId}/${fileName}`
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('receipts')
+        .upload(filePath, receiptFile)
+        
+      if (!uploadError && uploadData) {
+        const { data: publicUrlData } = supabase.storage.from('receipts').getPublicUrl(filePath)
+        uploadedUrl = publicUrlData.publicUrl
+      }
+      toast.dismiss('upload')
+    }
 
     const { error } = await supabase.from('transactions').insert({
-      household_id: (profile as any)!.household_id!,
+      household_id: householdId,
       envelope_id: envelopeId,
       created_by: user!.id,
       type,
@@ -137,6 +158,7 @@ export default function AddTransactionModal({ envelopes, defaultEnvelope, onClos
       description: description.trim(),
       merchant: merchant.trim() || null,
       transaction_date: date,
+      receipt_url: uploadedUrl,
     } as any)
 
     if (error) { toast.error(error.message) } else { toast.success('Saved'); onSaved() }
@@ -202,10 +224,12 @@ export default function AddTransactionModal({ envelopes, defaultEnvelope, onClos
                 justifyContent: 'center',
                 gap: '8px',
                 padding: '12px',
-                border: '2px dashed var(--border)',
+                border: receiptFile ? '2px solid var(--accent)' : '2px dashed var(--border)',
+                background: receiptFile ? 'var(--accent-light)' : 'transparent',
+                color: receiptFile ? 'var(--text-display)' : 'var(--text-primary)',
               }}
             >
-              📸 {scanning ? 'Scanning...' : 'Scan Receipt'}
+              📸 {scanning ? 'Scanning...' : receiptFile ? 'Receipt Attached (Scan again)' : 'Scan Receipt'}
             </button>
           </div>
 
