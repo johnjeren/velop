@@ -54,6 +54,11 @@ create table envelopes (
   budget_amount numeric(12, 2) not null default 0,   -- monthly allocation
   sort_order    int not null default 0,
   archived      boolean not null default false,
+  -- Savings goal fields
+  is_goal       boolean not null default false,
+  target_amount numeric(12, 2),                      -- total savings target
+  target_date   date,                                -- deadline
+  reset_monthly boolean not null default false,      -- if true, balance zeroes out each month
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
@@ -123,6 +128,18 @@ current_period as (
   select envelope_id, allocated as current_month_allocated
   from budget_periods
   where period_month = date_trunc('month', CURRENT_DATE)::date
+),
+current_month_tx_sums as (
+  select envelope_id, sum(
+    case
+      when type in ('allocate', 'transfer_in') then amount
+      when type in ('spend', 'transfer_out')   then -amount
+      else 0
+    end
+  ) as net_transactions
+  from transactions
+  where transaction_date >= date_trunc('month', CURRENT_DATE)::date
+  group by envelope_id
 )
 select
   e.id as envelope_id,
@@ -132,11 +149,21 @@ select
   e.color,
   coalesce(cp.current_month_allocated, e.budget_amount) as budget_amount,
   e.archived,
-  coalesce(pa.total_allocated, 0) + coalesce(ts.net_transactions, 0) as balance
+  e.is_goal,
+  e.target_amount,
+  e.target_date,
+  e.reset_monthly,
+  case 
+    when e.reset_monthly = true then
+      coalesce(cp.current_month_allocated, e.budget_amount) + coalesce(cmts.net_transactions, 0)
+    else
+      coalesce(pa.total_allocated, 0) + coalesce(ts.net_transactions, 0)
+  end as balance
 from envelopes e
 left join period_allocations pa on pa.envelope_id = e.id
 left join tx_sums ts on ts.envelope_id = e.id
-left join current_period cp on cp.envelope_id = e.id;
+left join current_period cp on cp.envelope_id = e.id
+left join current_month_tx_sums cmts on cmts.envelope_id = e.id;
 
 -- ============================================================
 -- ROW LEVEL SECURITY
@@ -367,3 +394,53 @@ select cron.schedule(
   '0 0 1 * *',
   'SELECT public.generate_monthly_bills();'
 );
+
+-- ============================================================
+-- PHASE 8 MIGRATION: SAVINGS GOALS
+-- Run only once in Supabase SQL Editor
+-- ============================================================
+alter table envelopes
+  add column if not exists is_goal      boolean not null default false,
+  add column if not exists target_amount numeric(12,2),
+  add column if not exists target_date   date;
+
+drop view if exists envelope_balances;
+
+create or replace view envelope_balances as
+with period_allocations as (
+  select envelope_id, sum(allocated) as total_allocated
+  from budget_periods
+  group by envelope_id
+),
+tx_sums as (
+  select envelope_id, sum(
+    case
+      when type in ('allocate', 'transfer_in') then amount
+      when type in ('spend', 'transfer_out')   then -amount
+      else 0
+    end
+  ) as net_transactions
+  from transactions
+  group by envelope_id
+),
+current_period as (
+  select envelope_id, allocated as current_month_allocated
+  from budget_periods
+  where period_month = date_trunc('month', CURRENT_DATE)::date
+)
+select
+  e.id as envelope_id,
+  e.household_id,
+  e.name,
+  e.icon,
+  e.color,
+  coalesce(cp.current_month_allocated, e.budget_amount) as budget_amount,
+  e.archived,
+  e.is_goal,
+  e.target_amount,
+  e.target_date,
+  coalesce(pa.total_allocated, 0) + coalesce(ts.net_transactions, 0) as balance
+from envelopes e
+left join period_allocations pa on pa.envelope_id = e.id
+left join tx_sums ts on ts.envelope_id = e.id
+left join current_period cp on cp.envelope_id = e.id;

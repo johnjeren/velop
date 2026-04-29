@@ -72,6 +72,10 @@ export default function TransactionList({ transactions, envelopes }: Props) {
     budget_amount: 0,
     archived: false,
     balance: 0,
+    is_goal: false,
+    target_amount: null,
+    target_date: null,
+    reset_monthly: true
   }))
 
   return (
@@ -145,12 +149,14 @@ export default function TransactionList({ transactions, envelopes }: Props) {
           {filtered.map((tx, i) => (
             <div
               key={tx.id}
+              className="interactive-row stagger-item"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
                 padding: '12px 20px',
                 borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none',
+                animationDelay: `${i * 20}ms`,
               }}
             >
               {/* Avatar */}

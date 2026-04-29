@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
-const ICONS = ['🔁','🏠','📺','💡','💧','📱','🚗','🏥','🎵','🍕','🏋️','☁️','🔒','📡','🎮','🛡️']
+const ICONS = ['🔁','🏠','📺','💡','💧','📱','🚗','🏥','🎵','🍕','🏋️','☁️','🔒','📡','🎮','🛡️', '📈', '🏦', '🎓', '💸']
 const DAYS = Array.from({ length: 28 }, (_, i) => i + 1)
 
 interface Envelope {
@@ -31,10 +31,15 @@ export default function AddBillModal({ envelopes, onClose, onSaved }: Props) {
   const [loading, setLoading] = useState(false)
   const [showIconPicker, setShowIconPicker] = useState(false)
 
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const parsed = parseFloat(amount)
-    if (!name.trim()) { toast.error('Enter a bill name'); return }
+    if (!name.trim()) { toast.error('Enter a name'); return }
     if (isNaN(parsed) || parsed <= 0) { toast.error('Enter a valid amount'); return }
 
     setLoading(true)
@@ -56,7 +61,6 @@ export default function AddBillModal({ envelopes, onClose, onSaved }: Props) {
     if (error) {
       toast.error(error.message)
     } else {
-      // Generate this month's instance immediately
       const today = new Date()
       const dueDate = new Date(today.getFullYear(), today.getMonth(), Math.min(dueDay, 28))
       const { data: bill } = await supabase
@@ -77,35 +81,49 @@ export default function AddBillModal({ envelopes, onClose, onSaved }: Props) {
         } as any)
       }
 
-      toast.success('Bill added!')
+      toast.success('Recurring item added!')
       onSaved()
     }
     setLoading(false)
   }
 
   return (
-    <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1000,
-        background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
-      }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div
-        className="card animate-fade-in"
-        style={{ width: '100%', maxWidth: '420px', padding: '32px', maxHeight: '90vh', overflowY: 'auto' }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-display)' }}>
-            Add Recurring Bill
+    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="modal" style={{ padding: '28px' }}>
+        
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
+          <div style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '11px',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'var(--text-secondary)',
+          }}>
+            Add Recurring Item
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-disabled)', cursor: 'pointer', fontSize: '18px' }}>×</button>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              background: 'none',
+              border: '1px solid var(--border-strong)',
+              borderRadius: '4px',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              padding: '4px 10px',
+            }}
+          >
+            [ X ]
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Icon + Name */}
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
             <div>
               <label className="label">Icon</label>
               <button
@@ -113,24 +131,30 @@ export default function AddBillModal({ envelopes, onClose, onSaved }: Props) {
                 onClick={() => setShowIconPicker(v => !v)}
                 style={{
                   width: '46px', height: '46px', fontSize: '22px',
-                  background: 'var(--surface-raised)', border: '1px solid var(--border-visible)',
-                  borderRadius: '8px', cursor: 'pointer',
+                  background: 'var(--bg-primary)', border: '1px solid var(--border-strong)',
+                  borderRadius: 'var(--radius-md)', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
               >
                 {icon}
               </button>
               {showIconPicker && (
                 <div style={{
-                  position: 'absolute', background: 'var(--surface-raised)',
-                  border: '1px solid var(--border-visible)', borderRadius: '8px',
-                  padding: '8px', display: 'flex', flexWrap: 'wrap', gap: '4px',
-                  width: '180px', zIndex: 10,
+                  position: 'absolute', background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)',
+                  padding: '12px', display: 'flex', flexWrap: 'wrap', gap: '8px',
+                  width: '240px', zIndex: 10, boxShadow: 'var(--shadow-lg)'
                 }}>
                   {ICONS.map(ic => (
                     <button
                       key={ic} type="button"
                       onClick={() => { setIcon(ic); setShowIconPicker(false) }}
-                      style={{ fontSize: '18px', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', borderRadius: '4px', opacity: ic === icon ? 1 : 0.5 }}
+                      style={{ 
+                        fontSize: '22px', border: 'none', cursor: 'pointer', 
+                        padding: '6px', borderRadius: '8px', 
+                        background: ic === icon ? 'var(--accent-light)' : 'transparent',
+                        transition: 'background 0.2s ease' 
+                      }}
                     >
                       {ic}
                     </button>
@@ -145,13 +169,12 @@ export default function AddBillModal({ envelopes, onClose, onSaved }: Props) {
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value)}
-                placeholder="Netflix, Mortgage…"
+                placeholder="Mortgage, ETF, Netflix…"
                 required
               />
             </div>
           </div>
 
-          {/* Amount */}
           <div>
             <label className="label">Amount</label>
             <input
@@ -162,35 +185,33 @@ export default function AddBillModal({ envelopes, onClose, onSaved }: Props) {
               value={amount}
               onChange={e => setAmount(e.target.value)}
               placeholder="0.00"
+              style={{ fontSize: '22px' }}
               required
             />
           </div>
 
-          {/* Due Day */}
           <div>
-            <label className="label">Due Day of Month</label>
+            <label className="label">Day of Month</label>
             <select className="input" value={dueDay} onChange={e => setDueDay(parseInt(e.target.value))}>
               {DAYS.map(d => <option key={d} value={d}>{d}{d === 1 ? 'st' : d === 2 ? 'nd' : d === 3 ? 'rd' : 'th'}</option>)}
             </select>
           </div>
 
-          {/* Envelope Link */}
           <div>
             <label className="label">Link to Envelope (optional)</label>
             <select className="input" value={envelopeId} onChange={e => setEnvelopeId(e.target.value)}>
               <option value="">— None —</option>
               {envelopes.map(env => (
-                <option key={env.id} value={env.id}>{env.icon} {env.name}</option>
+                <option key={env.id} value={env.id}>{env.name}</option>
               ))}
             </select>
             {envelopeId && (
-              <div style={{ fontSize: '11px', color: 'var(--text-disabled)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
-                Marking paid will create a spend transaction in this envelope
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                Marking this item as "Paid/Completed" will automatically log a transaction in this envelope.
               </div>
             )}
           </div>
 
-          {/* Notes */}
           <div>
             <label className="label">Notes (optional)</label>
             <input
@@ -198,32 +219,34 @@ export default function AddBillModal({ envelopes, onClose, onSaved }: Props) {
               type="text"
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              placeholder="Account number, login info…"
+              placeholder="Account #, links, notes…"
             />
           </div>
 
-          {/* Auto-pay */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-primary)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
             <input
               id="autopay"
               type="checkbox"
               checked={autoPay}
               onChange={e => setAutoPay(e.target.checked)}
-              style={{ accentColor: 'var(--accent)', width: '16px', height: '16px' }}
+              style={{ width: '18px', height: '18px', accentColor: 'var(--accent)' }}
             />
-            <label htmlFor="autopay" style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-              Auto-pay (for your records only)
-            </label>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label htmlFor="autopay" style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                Auto-pay / Auto-deposit
+              </label>
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Just an indicator for your own records</span>
+            </div>
           </div>
 
-          <button
-            className="btn btn-primary"
-            type="submit"
-            disabled={loading}
-            style={{ width: '100%', justifyContent: 'center', marginTop: '4px', padding: '12px' }}
-          >
-            {loading ? 'Saving…' : 'Add Bill'}
-          </button>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+            <button type="button" className="btn btn-ghost" style={{ flex: 1 }} onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={loading}>
+              {loading ? 'Saving…' : 'Save Item'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -14,6 +14,9 @@ export default function SignupPage() {
   const [displayName, setDisplayName] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams()
+  const next = searchParams.get('next') || ''
+  
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -25,6 +28,7 @@ export default function SignupPage() {
         data: {
           display_name: displayName,
         },
+        emailRedirectTo: next ? `${window.location.origin}${next}` : `${window.location.origin}/`,
       },
     })
 
@@ -32,7 +36,7 @@ export default function SignupPage() {
       toast.error(error.message)
     } else if (data.user) {
       toast.success('Account created! Please check your email to verify.')
-      router.push('/login')
+      router.push(next ? `/login?next=${encodeURIComponent(next)}` : '/login')
     }
     setLoading(false)
   }

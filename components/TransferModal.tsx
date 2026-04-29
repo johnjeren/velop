@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { v4 as uuidv4 } from 'uuid'
@@ -23,6 +23,11 @@ export default function TransferModal({ envelopes, onClose, onSaved }: Props) {
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
 
   const fromEnvelope = envelopes.find(e => e.envelope_id === fromId)
 

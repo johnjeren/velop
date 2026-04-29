@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import AddBillModal from './AddBillModal'
+import { CheckCircle2, Circle, FastForward, Plus, ArchiveX } from 'lucide-react'
 
 interface RecurringBill {
   id: string
@@ -48,7 +49,7 @@ function formatMoney(n: number) {
 
 function formatDueDay(day: number) {
   const suffix = day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'
-  return `${day}${suffix} of month`
+  return `${day}${suffix}`
 }
 
 export default function BillsTracker({ bills, instances, envelopes }: Props) {
@@ -57,11 +58,11 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
   const [addOpen, setAddOpen] = useState(false)
   const [marking, setMarking] = useState<string | null>(null)
 
-  // Compute summary stats
   const totalDue = instances.filter(i => i.status === 'unpaid').reduce((s, i) => s + i.amount, 0)
   const totalPaid = instances.filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0)
   const paidCount = instances.filter(i => i.status === 'paid').length
   const unpaidCount = instances.filter(i => i.status === 'unpaid').length
+  const totalMonthly = bills.filter(b => b.active).reduce((s, b) => s + b.amount, 0)
 
   async function markPaid(instance: BillInstance) {
     setMarking(instance.id)
@@ -71,7 +72,6 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
 
     let transactionId = null
 
-    // If bill is linked to an envelope, auto-create a spend transaction
     const bill = bills.find(b => b.id === instance.bill_id)
     if (bill?.envelope_id) {
       const { data: tx } = await supabase.from('transactions').insert({
@@ -87,7 +87,7 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
       transactionId = (tx as any)?.id ?? null
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('bill_instances')
       .update({
         status: 'paid',
@@ -99,7 +99,7 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
     if (error) {
       toast.error(error.message)
     } else {
-      toast.success(`${bill?.name ?? 'Bill'} marked as paid!`)
+      toast.success(`${bill?.name ?? 'Item'} marked as paid!`)
       router.refresh()
     }
     setMarking(null)
@@ -107,7 +107,7 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
 
   async function markSkipped(instance: BillInstance) {
     setMarking(instance.id)
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('bill_instances')
       .update({ status: 'skipped' })
       .eq('id', instance.id)
@@ -118,15 +118,14 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
   }
 
   async function archiveBill(billId: string) {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('recurring_bills')
       .update({ active: false })
       .eq('id', billId)
     if (error) toast.error(error.message)
-    else { toast.success('Bill archived'); router.refresh() }
+    else { toast.success('Archived'); router.refresh() }
   }
 
-  // Sort instances: unpaid first by due date, then paid
   const unpaidInstances = instances.filter(i => i.status === 'unpaid').sort((a, b) => a.due_date.localeCompare(b.due_date))
   const paidInstances = instances.filter(i => i.status === 'paid')
   const skippedInstances = instances.filter(i => i.status === 'skipped')
@@ -137,54 +136,65 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
   return (
     <div className="animate-fade-in">
 
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '22px', letterSpacing: '-0.01em', color: 'var(--text-display)' }}>
-            Recurring Bills
+      {/* Hero Header */}
+      <div style={{
+        background: 'var(--bg-surface)',
+        borderRadius: 'var(--radius-xl)',
+        padding: '32px 24px',
+        marginBottom: '24px',
+        boxShadow: 'var(--shadow-sm)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div style={{ fontSize: '24px', fontWeight: '800', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+              Recurring
+            </div>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+              {monthLabel}
+            </div>
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-disabled)', marginTop: '4px' }}>
-            {monthLabel}
-          </div>
+          <button className="btn btn-primary" onClick={() => setAddOpen(true)} style={{ borderRadius: 'var(--radius-pill)', padding: '10px 16px', minHeight: 'auto' }}>
+            <Plus size={18} style={{ marginRight: '4px' }} /> Add
+          </button>
         </div>
-        <button className="btn btn-primary" onClick={() => setAddOpen(true)}>
-          + Add Bill
-        </button>
+
+        {/* Summary Stats */}
+        <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
+          {[
+            { label: 'Left to Pay', value: formatMoney(totalDue), count: `${unpaidCount} item${unpaidCount !== 1 ? 's' : ''}`, color: 'var(--warning)' },
+            { label: 'Paid This Month', value: formatMoney(totalPaid), count: `${paidCount} item${paidCount !== 1 ? 's' : ''}`, color: 'var(--success)' },
+            { label: 'Total Monthly', value: formatMoney(totalMonthly), count: `${bills.filter(b => b.active).length} items`, color: 'var(--accent)' },
+          ].map(stat => (
+            <div key={stat.label} style={{ flex: '1 0 140px', background: 'var(--bg-primary)', padding: '16px', borderRadius: 'var(--radius-lg)', borderLeft: `4px solid ${stat.color}` }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{stat.label}</div>
+              <div style={{ fontSize: '22px', fontWeight: '800', color: stat.color, marginTop: '8px', fontFamily: 'var(--font-mono)' }}>{stat.value}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-disabled)', marginTop: '4px' }}>{stat.count}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Summary Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '32px' }}>
-        {[
-          { label: 'Still Owed', value: formatMoney(totalDue), count: `${unpaidCount} bill${unpaidCount !== 1 ? 's' : ''}`, accent: 'var(--warning)' },
-          { label: 'Paid This Month', value: formatMoney(totalPaid), count: `${paidCount} bill${paidCount !== 1 ? 's' : ''}`, accent: 'var(--success)' },
-          { label: 'Total Monthly', value: formatMoney(bills.filter(b => b.active).reduce((s, b) => s + b.amount, 0)), count: `${bills.filter(b => b.active).length} bills`, accent: 'var(--text-display)' },
-        ].map(stat => (
-          <div key={stat.label} className="card" style={{ padding: '20px', borderLeft: `3px solid ${stat.accent}` }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-disabled)', marginBottom: '8px' }}>{stat.label}</div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '20px', color: stat.accent }}>{stat.value}</div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-disabled)', marginTop: '4px' }}>{stat.count}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* This Month's Bills */}
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-disabled)', marginBottom: '12px' }}>
+      {/* This Month's Items */}
+      <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px', color: 'var(--text-primary)' }}>
         This Month
-      </div>
+      </h2>
 
       {instances.length === 0 ? (
-        <div className="card" style={{ padding: '48px', textAlign: 'center' }}>
-          <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔁</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-disabled)' }}>
-            No bills for this month yet
+        <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔁</div>
+          <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>
+            No recurring items yet
           </div>
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '8px' }}>
-            Add a bill above — it will auto-generate each month.
+          <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '8px' }}>
+            Add subscriptions, bills, or investments to track them automatically.
           </div>
         </div>
       ) : (
-        <div className="card" style={{ overflow: 'hidden', marginBottom: '32px' }}>
-          {[...unpaidInstances, ...paidInstances, ...skippedInstances].map((instance, i, arr) => {
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
+          {[...unpaidInstances, ...paidInstances, ...skippedInstances].map((instance, i) => {
             const bill = bills.find(b => b.id === instance.bill_id)
             if (!bill) return null
             const isPaid = instance.status === 'paid'
@@ -196,102 +206,90 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
             return (
               <div
                 key={instance.id}
+                className="card interactive-card"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
-                  padding: '14px 20px',
-                  borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
-                  opacity: isSkipped ? 0.4 : 1,
+                  gap: '16px',
+                  padding: '16px 20px',
+                  opacity: isSkipped ? 0.5 : 1,
                 }}
               >
-                {/* Icon */}
-                <div style={{ fontSize: '22px', flexShrink: 0, width: '32px', textAlign: 'center' }}>{bill.icon}</div>
+                {/* Status Toggle / Icon */}
+                <button 
+                  onClick={() => !isPaid && markPaid(instance)}
+                  disabled={marking === instance.id || isPaid}
+                  style={{ background: 'none', border: 'none', cursor: isPaid ? 'default' : 'pointer', color: isPaid ? 'var(--success)' : 'var(--border-strong)', display: 'flex', padding: 0 }}
+                >
+                  {isPaid ? <CheckCircle2 size={28} /> : <Circle size={28} />}
+                </button>
+
+                <div style={{ fontSize: '24px', flexShrink: 0 }}>{bill.icon}</div>
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
-                    fontSize: '14px',
+                    fontSize: '15px',
+                    fontWeight: '600',
                     color: isPaid ? 'var(--text-secondary)' : 'var(--text-primary)',
                     textDecoration: isPaid ? 'line-through' : 'none',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
                     {bill.name}
-                    {bill.auto_pay && <span style={{ marginLeft: '6px', fontSize: '10px', color: 'var(--text-disabled)', fontFamily: 'var(--font-mono)' }}>AUTO</span>}
                   </div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.04em', textTransform: 'uppercase', color: isOverdue ? 'var(--accent)' : 'var(--text-disabled)', marginTop: '2px', display: 'flex', gap: '8px' }}>
-                    <span>{isOverdue ? '⚠ OVERDUE · ' : ''}{dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                  <div style={{ fontSize: '13px', color: isOverdue ? 'var(--danger)' : 'var(--text-secondary)', marginTop: '2px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span style={{ fontWeight: isOverdue ? '600' : '400' }}>
+                      {isOverdue ? '⚠ Overdue · ' : ''}{dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
                     {linkedEnv && <span>· {linkedEnv.icon} {linkedEnv.name}</span>}
                   </div>
                 </div>
 
-                {/* Amount */}
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: isPaid ? 'var(--success)' : isOverdue ? 'var(--accent)' : 'var(--text-primary)', flexShrink: 0 }}>
-                  {formatMoney(instance.amount)}
-                </div>
-
-                {/* Status badge + actions */}
-                {isPaid || isSkipped ? (
-                  <div style={{
-                    fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.06em', textTransform: 'uppercase',
-                    padding: '3px 8px', borderRadius: '4px',
-                    background: isPaid ? 'rgba(34,197,94,0.1)' : 'var(--surface-raised)',
-                    color: isPaid ? 'var(--success)' : 'var(--text-disabled)',
-                    flexShrink: 0,
-                  }}>
-                    {isPaid ? 'Paid' : 'Skipped'}
+                {/* Actions / Amount */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', fontWeight: '700', color: isPaid ? 'var(--success)' : isOverdue ? 'var(--danger)' : 'var(--text-primary)' }}>
+                    {formatMoney(instance.amount)}
                   </div>
-                ) : (
-                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                    <button
-                      className="btn btn-primary"
-                      disabled={marking === instance.id}
-                      onClick={() => markPaid(instance)}
-                      style={{ fontSize: '11px', padding: '5px 12px' }}
-                    >
-                      {marking === instance.id ? '…' : 'Mark Paid'}
-                    </button>
+                  {!isPaid && !isSkipped && (
                     <button
                       onClick={() => markSkipped(instance)}
                       disabled={marking === instance.id}
-                      style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-disabled)', padding: '5px 8px' }}
+                      style={{ background: 'var(--bg-primary)', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                     >
-                      Skip
+                      <FastForward size={12} /> Skip
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )
           })}
         </div>
       )}
 
-      {/* All Bills (definitions) */}
+      {/* All Recurring Items (definitions) */}
       {bills.length > 0 && (
         <>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-disabled)', marginBottom: '12px' }}>
-            All Bills
-          </div>
-          <div className="card" style={{ overflow: 'hidden' }}>
-            {bills.map((bill, i) => (
-              <div key={bill.id} style={{
-                display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 20px',
-                borderBottom: i < bills.length - 1 ? '1px solid var(--border)' : 'none',
-              }}>
-                <div style={{ fontSize: '20px', width: '28px', textAlign: 'center', flexShrink: 0 }}>{bill.icon}</div>
+          <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px', color: 'var(--text-primary)' }}>
+            Active Items
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '12px' }}>
+            {bills.map(bill => (
+              <div key={bill.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px' }}>
+                <div style={{ fontSize: '24px', flexShrink: 0, background: 'var(--bg-primary)', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px' }}>
+                  {bill.icon}
+                </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{bill.name}</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-disabled)', marginTop: '2px' }}>
-                    {formatDueDay(bill.due_day)} · {formatMoney(bill.amount)}/mo
-                    {bill.auto_pay ? ' · AUTO-PAY' : ''}
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{bill.name}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                    {formatDueDay(bill.due_day)} of month · {formatMoney(bill.amount)}
                   </div>
                 </div>
                 <button
                   onClick={() => archiveBill(bill.id)}
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-disabled)', padding: '4px 8px' }}
-                  title="Archive bill"
+                  style={{ background: 'var(--danger-light)', border: 'none', cursor: 'pointer', color: 'var(--danger)', padding: '8px', borderRadius: '8px', display: 'flex' }}
+                  title="Archive item"
                 >
-                  ×
+                  <ArchiveX size={16} />
                 </button>
               </div>
             ))}

@@ -1,31 +1,32 @@
 import type { Metadata } from 'next'
-import { Space_Grotesk, Space_Mono } from 'next/font/google'
+import { Archivo, Archivo_Narrow } from 'next/font/google'
 import { Toaster } from 'sonner'
+import { ThemeProvider } from '@/components/ThemeProvider'
 import './globals.css'
 
-const spaceGrotesk = Space_Grotesk({
+const archivo = Archivo({
   subsets: ['latin'],
   variable: '--font-sans',
-  weight: ['300', '400', '500', '700'],
+  weight: ['400', '500', '700', '800'],
   display: 'swap',
 })
 
-const spaceMono = Space_Mono({
+const archivaNarrow = Archivo_Narrow({
   subsets: ['latin'],
-  weight: ['400', '700'],
+  weight: ['400', '500', '700'],
   variable: '--font-mono',
   display: 'swap',
 })
 
 export const metadata: Metadata = {
-  title: 'Envelope Budget',
+  title: 'Velop',
   description: 'Shared envelope budgeting for your household',
   manifest: '/manifest.json',
-  themeColor: '#000000',
+  themeColor: '#D9D6D0',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Envelope',
+    title: 'Velop',
   },
   viewport: {
     width: 'device-width',
@@ -37,15 +38,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${spaceMono.variable}`}>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Doto:wght@400..900&display=swap" rel="stylesheet" />
-      </head>
+    <html lang="en" suppressHydrationWarning className={`${archivo.variable} ${archivaNarrow.variable}`}>
       <body>
-        {children}
-        <Toaster position="bottom-right" theme="dark" />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <Toaster position="bottom-right" theme="system" />
+        </ThemeProvider>
       </body>
     </html>
   )

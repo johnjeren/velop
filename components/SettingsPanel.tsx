@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
 
 interface Props {
   profile: {
@@ -21,6 +22,11 @@ const COLORS = ['#D97706','#059669','#2563EB','#7C3AED','#DC2626','#0891B2','#C0
 export default function SettingsPanel({ profile, members }: Props) {
   const supabase = createClient()
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  // Use useEffect to ensure we only render theme-dependent UI after hydration
+  useEffect(() => setMounted(true), [])
 
   const [householdName, setHouseholdName] = useState(profile?.households?.name ?? '')
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '')
@@ -65,7 +71,6 @@ export default function SettingsPanel({ profile, members }: Props) {
 
   return (
     <div className="animate-fade-in" style={{ maxWidth: '560px' }}>
-      <h1 style={{ fontSize: '26px', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '28px' }}>Settings</h1>
 
       {/* Household */}
       <section className="card" style={{ padding: '24px', marginBottom: '20px' }}>
@@ -109,6 +114,34 @@ export default function SettingsPanel({ profile, members }: Props) {
         <div style={{ display: 'flex', gap: '10px' }}>
           <input className="input" type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} />
           <button className="btn btn-primary" onClick={saveProfile} disabled={saving}>Save</button>
+        </div>
+      </section>
+
+      {/* Appearance */}
+      <section className="card" style={{ padding: '24px', marginBottom: '20px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px' }}>🎨 Appearance</h2>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            className="btn btn-ghost"
+            style={{ flex: 1, border: mounted && theme === 'light' ? '2px solid var(--accent)' : '2px solid transparent' }}
+            onClick={() => setTheme('light')}
+          >
+            ☀️ Light
+          </button>
+          <button
+            className="btn btn-ghost"
+            style={{ flex: 1, border: mounted && theme === 'dark' ? '2px solid var(--accent)' : '2px solid transparent' }}
+            onClick={() => setTheme('dark')}
+          >
+            🌙 Dark
+          </button>
+          <button
+            className="btn btn-ghost"
+            style={{ flex: 1, border: mounted && theme === 'system' ? '2px solid var(--accent)' : '2px solid transparent' }}
+            onClick={() => setTheme('system')}
+          >
+            💻 System
+          </button>
         </div>
       </section>
 

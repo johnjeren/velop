@@ -55,11 +55,13 @@ export default async function BillsPage() {
 
   return (
     <AppShell profile={profile}>
-      <BillsTracker
-        bills={(bills || []) as any}
-        instances={(instances || []) as any}
-        envelopes={envelopes || []}
-      />
+      <div className="animate-fade-in">
+        <BillsTracker
+          bills={(bills || []) as any}
+          instances={(instances || []) as any}
+          envelopes={envelopes || []}
+        />
+      </div>
     </AppShell>
   )
 }

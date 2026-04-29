@@ -42,6 +42,17 @@ export default async function HomePage() {
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
   const today = now.toISOString().split('T')[0]
 
+  // Fetch upcoming bills for the feed
+  const next30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  const { data: upcomingBills } = await supabase
+    .from('bill_instances')
+    .select('*, recurring_bills(name, icon)')
+    .eq('household_id', householdId)
+    .gte('due_date', today)
+    .lte('due_date', next30Days)
+    .order('due_date')
+    .limit(10)
+
   const { data: unpaidInstances } = await supabase
     .from('bill_instances')
     .select('amount, due_date')
@@ -51,18 +62,21 @@ export default async function HomePage() {
     .lte('due_date', monthEnd)
 
   const billsSummary = unpaidInstances && unpaidInstances.length > 0 ? {
-    totalDue: unpaidInstances.reduce((s, i) => s + Number(i.amount), 0),
+    totalDue: (unpaidInstances as any[]).reduce((s, i) => s + Number(i.amount), 0),
     unpaidCount: unpaidInstances.length,
-    overdueCount: unpaidInstances.filter(i => i.due_date < today).length,
+    overdueCount: (unpaidInstances as any[]).filter(i => i.due_date < today).length,
   } : null
 
   return (
     <AppShell profile={profile}>
-      <EnvelopeDashboard 
-        balances={balances || []} 
-        recentTransactions={recentTransactions || []}
-        billsSummary={billsSummary}
-      />
+      <div className="animate-fade-in">
+        <EnvelopeDashboard 
+          balances={balances || []} 
+          recentTransactions={recentTransactions || []}
+          upcomingBills={upcomingBills || []}
+          billsSummary={billsSummary}
+        />
+      </div>
     </AppShell>
   )
 }

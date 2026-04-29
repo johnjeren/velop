@@ -20,7 +20,9 @@ export default function LoginPage() {
     if (error) {
       toast.error(error.message)
     } else {
-      router.push('/')
+      const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams()
+      const next = searchParams.get('next')
+      router.push(next ? next : '/')
       router.refresh()
     }
     setLoading(false)

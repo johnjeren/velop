@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import type { EnvelopeBalance } from '@/lib/supabase/database.types'
@@ -19,26 +19,46 @@ export default function EnvelopeModal({ envelope, onClose, onSaved }: Props) {
   const [name, setName] = useState(envelope?.name ?? '')
   const [icon, setIcon] = useState(envelope?.icon ?? '💰')
   const [color, setColor] = useState(envelope?.color ?? '#D97706')
-  const [budget, setBudget] = useState(String(envelope?.budget_amount ?? ''))
+  const [budget, setBudget] = useState(envelope?.budget_amount ? String(envelope.budget_amount) : '')
+  const [isGoal, setIsGoal] = useState(envelope?.is_goal ?? false)
+  const [targetAmount, setTargetAmount] = useState(envelope?.target_amount ? String(envelope.target_amount) : '')
+  const [targetDate, setTargetDate] = useState(envelope?.target_date ?? '')
+  const [resetMonthly, setResetMonthly] = useState(envelope?.reset_monthly ?? false)
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) { toast.error('Name is required'); return }
     setLoading(true)
 
+    const payload = {
+      name: name.trim(),
+      icon,
+      color,
+      budget_amount: parseFloat(budget) || 0,
+      is_goal: isGoal,
+      target_amount: isGoal ? (parseFloat(targetAmount) || null) : null,
+      target_date: isGoal ? (targetDate || null) : null,
+      reset_monthly: resetMonthly,
+    }
+
     if (envelope) {
-      const { error } = await (supabase.from('envelopes') as any).update({
-        name: name.trim(), icon, color, budget_amount: parseFloat(budget) || 0,
-      }).eq('id', envelope.envelope_id)
+      const { error } = await (supabase.from('envelopes') as any)
+        .update(payload)
+        .eq('id', envelope.envelope_id)
       if (error) { toast.error(error.message) } else { toast.success('Envelope updated!'); onSaved() }
     } else {
       const { data: { user } } = await supabase.auth.getUser()
       const { data: profile } = await supabase.from('profiles').select('household_id').eq('id', user!.id).single()
       const { error } = await (supabase.from('envelopes') as any).insert({
+        ...payload,
         household_id: (profile as any)!.household_id!,
-        name: name.trim(), icon, color, budget_amount: parseFloat(budget) || 0,
       })
       if (error) { toast.error(error.message) } else { toast.success('Envelope created!'); onSaved() }
     }
@@ -77,19 +97,93 @@ export default function EnvelopeModal({ envelope, onClose, onSaved }: Props) {
         </div>
 
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Type Segmented Control */}
+          <div style={{
+            display: 'flex',
+            background: 'var(--bg-primary)',
+            padding: '4px',
+            borderRadius: 'var(--radius-pill)',
+          }}>
+            <button
+              type="button"
+              onClick={() => setIsGoal(false)}
+              style={{
+                flex: 1, padding: '10px', border: 'none', borderRadius: 'var(--radius-pill)',
+                cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: '600',
+                background: !isGoal ? 'var(--bg-surface)' : 'transparent',
+                color: !isGoal ? 'var(--text-primary)' : 'var(--text-secondary)',
+                boxShadow: !isGoal ? 'var(--shadow-sm)' : 'none', transition: 'all 150ms ease',
+              }}
+            >
+              Monthly Budget
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsGoal(true)}
+              style={{
+                flex: 1, padding: '10px', border: 'none', borderRadius: 'var(--radius-pill)',
+                cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: '600',
+                background: isGoal ? 'var(--bg-surface)' : 'transparent',
+                color: isGoal ? 'var(--text-primary)' : 'var(--text-secondary)',
+                boxShadow: isGoal ? 'var(--shadow-sm)' : 'none', transition: 'all 150ms ease',
+              }}
+            >
+              Savings Goal
+            </button>
+          </div>
+
           <div>
             <label className="label">Name</label>
             <input className="input" type="text" placeholder="e.g. Groceries" value={name} onChange={e => setName(e.target.value)} required />
           </div>
 
-          <div>
-            <label className="label">Monthly budget</label>
-            <input
-              className="input" type="number" min="0" step="0.01" placeholder="0.00"
-              value={budget} onChange={e => setBudget(e.target.value)}
-              style={{ fontFamily: 'var(--font-mono)' }}
-            />
-          </div>
+          {!isGoal ? (
+            <>
+              <div>
+                <label className="label">Monthly budget</label>
+                <input
+                  className="input" type="number" min="0" step="0.01" placeholder="0.00"
+                  value={budget} onChange={e => setBudget(e.target.value)}
+                  style={{ fontFamily: 'var(--font-mono)' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', background: 'var(--bg-primary)', borderRadius: 'var(--radius-sm)' }}>
+                <input 
+                  type="checkbox" 
+                  id="resetMonthly" 
+                  checked={resetMonthly} 
+                  onChange={e => setResetMonthly(e.target.checked)}
+                  style={{ width: '18px', height: '18px' }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <label htmlFor="resetMonthly" style={{ fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
+                    Reset balance monthly
+                  </label>
+                  <span style={{ fontSize: '11px', color: 'var(--text-disabled)' }}>Zeroes out unused funds on the 1st of each month</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label className="label">Target amount</label>
+                <input
+                  className="input" type="number" min="0" step="0.01" placeholder="0.00"
+                  value={targetAmount} onChange={e => setTargetAmount(e.target.value)}
+                  style={{ fontFamily: 'var(--font-mono)' }}
+                />
+              </div>
+              <div>
+                <label className="label">Target date</label>
+                <input
+                  className="input" type="date"
+                  value={targetDate} onChange={e => setTargetDate(e.target.value)}
+                  style={{ fontFamily: 'var(--font-mono)' }}
+                />
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="label">Icon</label>

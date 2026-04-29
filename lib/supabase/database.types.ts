@@ -70,6 +70,10 @@ export interface Database {
           budget_amount: number
           sort_order: number
           archived: boolean
+          is_goal: boolean
+          target_amount: number | null
+          target_date: string | null
+          reset_monthly: boolean
           created_at: string
           updated_at: string
         }
@@ -82,6 +86,10 @@ export interface Database {
           budget_amount?: number
           sort_order?: number
           archived?: boolean
+          is_goal?: boolean
+          target_amount?: number | null
+          target_date?: string | null
+          reset_monthly?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -94,6 +102,10 @@ export interface Database {
           budget_amount?: number
           sort_order?: number
           archived?: boolean
+          is_goal?: boolean
+          target_amount?: number | null
+          target_date?: string | null
+          reset_monthly?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -176,6 +188,10 @@ export interface Database {
           color: string
           budget_amount: number
           archived: boolean
+          is_goal: boolean
+          target_amount: number | null
+          target_date: string | null
+          reset_monthly: boolean
           balance: number
         }
       }

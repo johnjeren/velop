@@ -37,9 +37,6 @@ export default async function ChartsPage() {
   return (
     <AppShell profile={profile}>
       <div className="animate-fade-in">
-        <h1 style={{ fontSize: '26px', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '24px' }}>
-          Charts
-        </h1>
         <SpendingCharts 
           transactions={transactions || []} 
           envelopes={envelopes || []}
