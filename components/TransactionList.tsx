@@ -40,6 +40,7 @@ export default function TransactionList({ transactions, envelopes }: Props) {
   const [filterType, setFilterType] = useState('')
   const [search, setSearch] = useState('')
   const [addOpen, setAddOpen] = useState(false)
+  const [editingTx, setEditingTx] = useState<TxWithRelations | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
 
   const filtered = transactions.filter(tx => {
@@ -194,8 +195,8 @@ export default function TransactionList({ transactions, envelopes }: Props) {
                   gap: '6px',
                 }}>
                   {tx.envelopes?.name} · {formatDate(tx.transaction_date)} · {tx.profiles?.display_name}
-                  {(tx as any).receipt_url && (
-                    <a href={(tx as any).receipt_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: '11px' }} title="View Receipt">
+                  {tx.receipt_url && (
+                    <a href={tx.receipt_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: '11px' }} title="View Receipt">
                       📎
                     </a>
                   )}
@@ -214,6 +215,24 @@ export default function TransactionList({ transactions, envelopes }: Props) {
                 {tx.type === 'spend' || tx.type === 'transfer_out' ? '−' : '+'}
                 {formatMoney(tx.amount)}
               </div>
+
+              {/* Edit */}
+              <button
+                onClick={() => setEditingTx(tx)}
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-disabled)',
+                  padding: '4px 6px',
+                  letterSpacing: '0.04em',
+                }}
+                title="Edit"
+              >
+                ✎
+              </button>
 
               {/* Delete */}
               <button
@@ -245,6 +264,16 @@ export default function TransactionList({ transactions, envelopes }: Props) {
           defaultEnvelope={null}
           onClose={() => setAddOpen(false)}
           onSaved={() => { setAddOpen(false); router.refresh() }}
+        />
+      )}
+
+      {editingTx && (
+        <AddTransactionModal
+          envelopes={envelopeBalances}
+          defaultEnvelope={null}
+          transaction={editingTx}
+          onClose={() => setEditingTx(null)}
+          onSaved={() => { setEditingTx(null); router.refresh() }}
         />
       )}
     </div>

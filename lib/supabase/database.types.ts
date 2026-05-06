@@ -120,6 +120,7 @@ export interface Database {
           amount: number
           description: string
           merchant: string | null
+          receipt_url: string | null
           transfer_pair_id: string | null
           transaction_date: string
           created_at: string
@@ -133,6 +134,7 @@ export interface Database {
           amount: number
           description?: string
           merchant?: string | null
+          receipt_url?: string | null
           transfer_pair_id?: string | null
           transaction_date?: string
           created_at?: string
@@ -146,6 +148,7 @@ export interface Database {
           amount?: number
           description?: string
           merchant?: string | null
+          receipt_url?: string | null
           transfer_pair_id?: string | null
           transaction_date?: string
           created_at?: string

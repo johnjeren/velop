@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
+export const maxDuration = 30; // Allow more time for AI processing
+
 export async function POST(request: NextRequest) {
   try {
     // Check if API key is configured
@@ -15,22 +17,35 @@ export async function POST(request: NextRequest) {
       apiKey: process.env.OPENAI_API_KEY,
     })
 
-    const { image } = await request.json()
+    const { image, imageUrl } = await request.json()
 
-    if (!image) {
+    if (!image && !imageUrl) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 })
     }
 
+    let base64Image = image
+
+    if (imageUrl && !image) {
+      const imgRes = await fetch(imageUrl)
+      if (!imgRes.ok) {
+        return NextResponse.json({ error: 'Failed to fetch receipt image' }, { status: 400 })
+      }
+      const buffer = await imgRes.arrayBuffer()
+      const b64 = Buffer.from(buffer).toString('base64')
+      const contentType = imgRes.headers.get('content-type') || 'image/jpeg'
+      base64Image = `data:${contentType};base64,${b64}`
+    }
+
     // Validate it's a data URL
-    if (!image.startsWith('data:image/')) {
+    if (!base64Image.startsWith('data:image/')) {
       return NextResponse.json({ error: 'Invalid image format' }, { status: 400 })
     }
 
     // Extract the image format and ensure it's supported
-    const formatMatch = image.match(/^data:image\/(png|jpeg|jpg|gif|webp);base64,/)
+    const formatMatch = base64Image.match(/^data:image\/(png|jpeg|jpg|gif|webp);base64,/)
     if (!formatMatch) {
-      return NextResponse.json({ 
-        error: 'Unsupported image format. Please use PNG, JPEG, GIF, or WebP.' 
+      return NextResponse.json({
+        error: 'Unsupported image format. Please use PNG, JPEG, GIF, or WebP.'
       }, { status: 400 })
     }
 
@@ -55,8 +70,8 @@ export async function POST(request: NextRequest) {
             {
               type: 'image_url',
               image_url: {
-                url: image,
-                detail: 'low', // Use low detail to reduce costs
+                url: base64Image,
+                detail: 'low',
               },
             },
           ],
