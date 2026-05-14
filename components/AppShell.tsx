@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Wallet, Receipt, CalendarClock, PieChart, Settings, LogOut } from 'lucide-react'
+import IOSInstallHint from './IOSInstallHint'
 
 const NAV = [
   { href: '/',             label: 'Envelopes',    icon: Wallet },
@@ -275,6 +276,8 @@ export default function AppShell({ children, profile }: AppShellProps) {
         </div>
       </nav>
 
+      <IOSInstallHint />
+
       <style>{`
         @media (max-width: 768px) {
           .sidebar { display: none !important; }
@@ -282,7 +285,7 @@ export default function AppShell({ children, profile }: AppShellProps) {
           .mobile-bottom-nav { display: block !important; }
           main { padding: 24px 16px !important; padding-bottom: 120px !important; }
         }
-        
+
         .nav-item:hover {
           background: var(--accent-light) !important;
           color: var(--text-primary) !important;

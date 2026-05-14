@@ -310,6 +310,30 @@ option {
 .animate-fade-in { animation: fadeIn 240ms ease both; }
 .animate-slide-up { animation: fadeSlideIn 240ms ease both; }
 
+/* Value-change flash — earns its lemon touch by marking a system event */
+@keyframes amountFlash {
+  0%   { background-color: var(--accent-light); }
+  100% { background-color: transparent; }
+}
+@keyframes amountBlink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+.amount-flash {
+  animation: amountFlash 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  border-radius: 1px;
+  padding: 0 2px;
+  margin: 0 -2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .amount-flash {
+    animation: amountBlink 200ms ease both;
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+  }
+}
+
 /* Stagger animation for transaction rows — capped delay handled inline */
 .stagger-item {
   animation: fadeSlideIn 240ms ease both;

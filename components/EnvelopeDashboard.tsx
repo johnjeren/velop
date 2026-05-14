@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -34,20 +34,176 @@ function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-function ProgressBar({ balance, target, danger, color }: { balance: number; target: number; danger?: boolean; color?: string }) {
+function EnvelopeCard({ env, onOpenAddTx, onOpenEditEnv, index }: {
+  env: EnvelopeBalance
+  onOpenAddTx: (env: EnvelopeBalance) => void
+  onOpenEditEnv: (env: EnvelopeBalance) => void
+  index: number
+}) {
   const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  const [flash, setFlash] = useState(false)
+  const prevBalance = useRef(env.balance)
+
+  useEffect(() => { setMounted(true) }, [])
+
+  useEffect(() => {
+    if (prevBalance.current !== env.balance) {
+      setFlash(true)
+      const t = setTimeout(() => setFlash(false), 650)
+      prevBalance.current = env.balance
+      return () => clearTimeout(t)
+    }
+  }, [env.balance])
+
+  const balance = env.balance
+  const budget = env.budget_amount ?? 0
+  const target = env.is_goal ? (env.target_amount ?? 0) : budget
+  const isOver = !env.is_goal && balance < 0
+  const isGoalReached = env.is_goal && env.target_amount != null && balance >= env.target_amount
+  const isNew = !env.is_goal && balance === 0 && budget === 0
   const pct = target > 0 ? Math.min(1, Math.max(0, balance / target)) : 0
-  const barColor = danger ? 'var(--danger)' : color || (pct > 0.85 ? 'var(--warning)' : 'var(--success)')
+  const isLow = !env.is_goal && !isOver && budget > 0 && pct < 0.15
+
+  let eyebrow: string = 'BUDGET'
+  let eyebrowColor = 'var(--text-secondary)'
+  if (env.is_goal) {
+    if (isGoalReached) {
+      eyebrow = 'REACHED'
+      eyebrowColor = 'var(--success)'
+    } else {
+      const year = env.target_date ? new Date(env.target_date + 'T00:00:00').getFullYear() : null
+      eyebrow = year ? `GOAL · ${year}` : 'GOAL'
+    }
+  } else if (isOver) {
+    eyebrow = 'OVER'
+    eyebrowColor = 'var(--danger)'
+  } else if (isNew) {
+    eyebrow = 'NEW'
+    eyebrowColor = 'var(--text-disabled)'
+  }
+
+  const amountColor = isOver ? 'var(--danger)'
+    : isGoalReached ? 'var(--success)'
+    : isNew ? 'var(--text-disabled)'
+    : 'var(--text-primary)'
+
+  const barColor = isOver ? 'var(--danger)'
+    : isGoalReached ? 'var(--success)'
+    : isLow ? 'var(--warning)'
+    : env.is_goal ? 'var(--text-primary)'
+    : 'var(--success)'
+
+  const denominator = env.is_goal
+    ? `of ${formatMoney(target)}`
+    : `of ${formatMoney(budget)}/mo`
+
+  const barPct = isOver ? 1 : Math.min(1, Math.abs(pct))
+  const showBar = !isNew
 
   return (
-    <div style={{ height: '4px', background: 'var(--bg-subtle)', overflow: 'hidden', marginTop: '14px' }}>
-      <div style={{
-        height: '100%',
-        width: mounted ? `${pct * 100}%` : '0%',
-        background: barColor,
-        transition: 'width 800ms cubic-bezier(0.16, 1, 0.3, 1)',
-      }} />
+    <div
+      className="card interactive-card"
+      role="button"
+      tabIndex={0}
+      aria-label={`Add transaction to ${env.name}`}
+      onClick={() => onOpenAddTx(env)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onOpenAddTx(env)
+        }
+      }}
+      style={{
+        padding: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        animation: 'fadeSlideIn 240ms ease both',
+        animationDelay: `${Math.min(index, 8) * 30}ms`,
+      }}
+    >
+      {/* 2px identity stamp — top edge */}
+      <div style={{ height: '2px', width: '100%', background: env.color }} />
+
+      <div style={{ padding: '18px 20px 16px' }}>
+        {/* Row 1: icon · name + eyebrow · edit */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{
+            width: '36px', height: '36px',
+            background: `${env.color}24`,
+            border: `1px solid ${env.color}66`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '17px',
+            flexShrink: 0,
+          }}>
+            {env.icon || env.name.charAt(0)}
+          </div>
+
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div style={{
+              fontSize: '15px', fontWeight: 700,
+              color: 'var(--text-primary)', letterSpacing: '-0.01em',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>
+              {env.name}
+            </div>
+            <div style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '10px', fontWeight: 600,
+              color: eyebrowColor,
+              letterSpacing: '0.14em', textTransform: 'uppercase',
+            }}>
+              {eyebrow}
+            </div>
+          </div>
+
+          <button
+            aria-label={`Edit ${env.name}`}
+            onClick={(e) => { e.stopPropagation(); onOpenEditEnv(env) }}
+            style={{
+              width: '32px', height: '32px',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--text-secondary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 0,
+              flexShrink: 0,
+            }}
+          >
+            <ChevronRight size={18} aria-hidden />
+          </button>
+        </div>
+
+        {/* Amount + denominator — same baseline */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
+          <span
+            className={flash ? 'amount amount-flash' : 'amount'}
+            style={{ fontSize: '30px', color: amountColor, letterSpacing: '-0.035em' }}
+          >
+            {formatMoney(balance)}
+          </span>
+          <span style={{
+            fontFamily: 'var(--font-sans)',
+            fontVariantNumeric: 'tabular-nums',
+            fontSize: '13px', fontWeight: 500,
+            color: 'var(--text-secondary)',
+          }}>
+            {denominator}
+          </span>
+        </div>
+      </div>
+
+      {/* Progress — 3px, full-bleed bottom edge, semantic color (not identity) */}
+      {showBar && (
+        <div style={{ height: '3px', background: 'var(--bg-subtle)', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%',
+            width: mounted ? `${barPct * 100}%` : '0%',
+            background: barColor,
+            transition: 'width 800ms cubic-bezier(0.16, 1, 0.3, 1)',
+          }} />
+        </div>
+      )}
     </div>
   )
 }
@@ -134,13 +290,23 @@ export default function EnvelopeDashboard({ balances, recentTransactions, upcomi
   const router = useRouter()
   const supabase = createClient()
 
-  // Realtime Dashboard Sync
+  // Realtime Dashboard Sync — channel subscribes for live updates,
+  // visibilitychange backfills missed events when the PWA returns from background.
   useEffect(() => {
     const channel = supabase.channel('dashboard-sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => router.refresh())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'envelopes' }, () => router.refresh())
       .subscribe()
-    return () => { supabase.removeChannel(channel) }
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') router.refresh()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      supabase.removeChannel(channel)
+    }
   }, [router, supabase])
 
   const [addTxOpen, setAddTxOpen] = useState(false)
@@ -175,7 +341,7 @@ export default function EnvelopeDashboard({ balances, recentTransactions, upcomi
       <div className="hero-wallet card" style={{
         padding: '28px 24px 24px',
         marginBottom: '24px',
-        borderColor: 'var(--text-primary)',
+        borderColor: 'var(--border-strong)',
         position: 'relative',
         overflow: 'hidden',
       }}>
@@ -267,80 +433,15 @@ export default function EnvelopeDashboard({ balances, recentTransactions, upcomi
         gap: '16px',
         marginBottom: '40px',
       }}>
-        {balances.map(env => {
-          const balance = env.balance
-          const budget = env.budget_amount ?? 0
-          const danger = balance < 0
-
-          let subtitle = `${formatMoney(budget)}/mo`
-          let target = budget
-          if (env.is_goal && env.target_amount) {
-            subtitle = `Target: ${formatMoney(env.target_amount)}`
-            target = env.target_amount
-          }
-
-          return (
-            <div
-              key={env.envelope_id}
-              className="card interactive-card"
-              role="button"
-              tabIndex={0}
-              aria-label={`Add transaction to ${env.name}`}
-              onClick={() => { setAddTxEnvelope(env); setAddTxOpen(true) }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  setAddTxEnvelope(env)
-                  setAddTxOpen(true)
-                }
-              }}
-              style={{ padding: '0', display: 'flex', flexDirection: 'row' }}
-            >
-              {/* Colored accent strip — envelope identity */}
-              <div style={{
-                width: '4px',
-                flexShrink: 0,
-                background: env.color,
-              }} />
-              
-              <div style={{ flex: 1, padding: '20px 20px 16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div style={{
-                      width: '40px', height: '40px', borderRadius: '0',
-                      background: `${env.color}18`,
-                      border: `1px solid ${env.color}50`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '18px',
-                    }}>
-                      {env.icon || env.name.charAt(0)}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {env.name}
-                        {env.is_goal && <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: '700', background: 'var(--success-light)', color: 'var(--success)', padding: '3px 8px', borderRadius: '0', letterSpacing: '0.12em', textTransform: 'uppercase', border: '1px solid var(--success)' }}>GOAL</span>}
-                      </div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-disabled)', marginTop: '2px' }}>{subtitle}</div>
-                    </div>
-                  </div>
-                  <button
-                    aria-label={`Edit ${env.name}`}
-                    style={{ padding: '8px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-disabled)' }}
-                    onClick={(e) => { e.stopPropagation(); setEditEnvelope(env); setEnvelopeModalOpen(true) }}
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-
-                <div className="amount" style={{ fontSize: '26px', color: danger ? 'var(--danger)' : 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-                  {formatMoney(balance)}
-                </div>
-
-                <ProgressBar balance={balance} target={target} danger={danger} color={env.color} />
-              </div>
-            </div>
-          )
-        })}
+        {balances.map((env, i) => (
+          <EnvelopeCard
+            key={env.envelope_id}
+            env={env}
+            index={i}
+            onOpenAddTx={(e) => { setAddTxEnvelope(e); setAddTxOpen(true) }}
+            onOpenEditEnv={(e) => { setEditEnvelope(e); setEnvelopeModalOpen(true) }}
+          />
+        ))}
       </div>
 
       <ActivityFeed transactions={recentTransactions} bills={upcomingBills} balances={balances} />
