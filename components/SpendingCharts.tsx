@@ -87,7 +87,7 @@ export default function SpendingCharts({ transactions, envelopes }: Props) {
   return (
     <div className="animate-fade-in">
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-        <h1 style={{ fontSize: '26px', fontWeight: '800', letterSpacing: '-0.5px', margin: 0 }}>Spending Overview</h1>
+        <h1 style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.04em', margin: 0 }}>Spending Overview</h1>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <select 
             className="input" 
@@ -125,7 +125,7 @@ export default function SpendingCharts({ transactions, envelopes }: Props) {
           <div key={card.label} className="card" style={{ padding: '18px' }}>
             <div style={{ fontSize: '24px', marginBottom: '8px' }}>{card.icon}</div>
             <div className="amount" style={{ fontSize: '22px', fontWeight: '700' }}>{card.value}</div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{card.label}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>{card.label}</div>
           </div>
         ))}
       </div>
@@ -134,14 +134,14 @@ export default function SpendingCharts({ transactions, envelopes }: Props) {
       <div className="card" style={{ padding: '24px', marginBottom: '24px' }}>
         <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>Monthly Spending</h2>
         {monthlyData.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '32px' }}>No spending data yet</p>
+          <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '32px' }}>No spending data yet</p>
         ) : (
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={monthlyData} margin={{ top: 0, right: 0, left: -10, bottom: 0 }}>
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
-              <Tooltip formatter={(v: number) => formatMoney(v)} contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }} />
-              <Bar dataKey="total" fill="var(--accent)" radius={[6, 6, 0, 0]} />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
+              <Tooltip formatter={(v: number) => formatMoney(v)} contentStyle={{ borderRadius: '0', border: '1px solid var(--border-strong)', background: 'var(--bg-surface)', color: 'var(--text-primary)', fontSize: '13px' }} />
+              <Bar dataKey="total" fill="var(--accent)" radius={0} />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -152,7 +152,7 @@ export default function SpendingCharts({ transactions, envelopes }: Props) {
         <div className="card" style={{ padding: '24px' }}>
           <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>By Envelope</h2>
           {byEnvelope.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '32px' }}>No data</p>
+            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '32px' }}>No data</p>
           ) : (
             <ResponsiveContainer width="100%" height={240}>
               <PieChart>
@@ -161,7 +161,7 @@ export default function SpendingCharts({ transactions, envelopes }: Props) {
                     <Cell key={i} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v: number) => formatMoney(v)} contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }} />
+                <Tooltip formatter={(v: number) => formatMoney(v)} contentStyle={{ borderRadius: '0', border: '1px solid var(--border-strong)', background: 'var(--bg-surface)', color: 'var(--text-primary)', fontSize: '13px' }} />
                 <Legend iconType="circle" iconSize={10} wrapperStyle={{ fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
@@ -172,15 +172,15 @@ export default function SpendingCharts({ transactions, envelopes }: Props) {
         <div className="card" style={{ padding: '24px' }}>
           <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>Budget vs Actual</h2>
           {budgetVsActual.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '32px' }}>No budget set</p>
+            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '32px' }}>No budget set</p>
           ) : (
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={budgetVsActual} layout="vertical" margin={{ top: 0, right: 0, left: 60, bottom: 0 }}>
-                <XAxis type="number" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} width={60} />
-                <Tooltip formatter={(v: number) => formatMoney(v)} contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', fontSize: '13px' }} />
-                <Bar dataKey="budget" fill="var(--bg-subtle)" radius={[0, 4, 4, 0]} name="Budget" />
-                <Bar dataKey="spent" fill="var(--accent)" radius={[0, 4, 4, 0]} name="Spent" />
+                <XAxis type="number" tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} width={60} />
+                <Tooltip formatter={(v: number) => formatMoney(v)} contentStyle={{ borderRadius: '0', border: '1px solid var(--border-strong)', background: 'var(--bg-surface)', color: 'var(--text-primary)', fontSize: '13px' }} />
+                <Bar dataKey="budget" fill="var(--bg-subtle)" radius={0} name="Budget" />
+                <Bar dataKey="spent" fill="var(--accent)" radius={0} name="Spent" />
               </BarChart>
             </ResponsiveContainer>
           )}

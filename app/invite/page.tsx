@@ -14,7 +14,7 @@ export default async function InvitePage({ searchParams }: { searchParams: { tok
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-primary)' }}>
         <div className="card" style={{ padding: '40px', textAlign: 'center', maxWidth: '400px', width: '100%' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
-          <h1 style={{ fontSize: '20px', fontWeight: 'bold' }}>Invalid Link</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.03em' }}>Invalid Link</h1>
           <p style={{ marginTop: '8px', color: 'var(--text-secondary)' }}>This invite link is missing a token.</p>
         </div>
       </div>
@@ -35,7 +35,7 @@ export default async function InvitePage({ searchParams }: { searchParams: { tok
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-primary)' }}>
         <div className="card" style={{ padding: '40px', textAlign: 'center', maxWidth: '400px', width: '100%' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
-          <h1 style={{ fontSize: '20px', fontWeight: 'bold' }}>Invite Not Found</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.03em' }}>Invite Not Found</h1>
           <p style={{ marginTop: '8px', color: 'var(--text-secondary)' }}>
             This invite link is invalid, expired, or you don't have permission to view it.
           </p>
@@ -51,7 +51,7 @@ export default async function InvitePage({ searchParams }: { searchParams: { tok
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-primary)' }}>
         <div className="card" style={{ padding: '40px', textAlign: 'center', maxWidth: '400px', width: '100%' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>👋</div>
-          <h1 style={{ fontSize: '20px', fontWeight: 'bold' }}>You've been invited!</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.03em' }}>You've been invited!</h1>
           <p style={{ marginTop: '8px', color: 'var(--text-secondary)' }}>
             <strong style={{ color: 'var(--text-primary)' }}>{(invite as any).profiles?.display_name}</strong> invited you to join 
             the <strong style={{ color: 'var(--text-primary)' }}>{(invite as any).households?.name}</strong> household.

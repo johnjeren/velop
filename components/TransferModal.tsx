@@ -110,7 +110,7 @@ export default function TransferModal({ envelopes, onClose, onSaved }: Props) {
           <div>
             <label className="label">Amount</label>
             {fromEnvelope && (
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px' }}>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
                 Available: {formatMoney(fromEnvelope.balance)}
               </p>
             )}

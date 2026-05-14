@@ -41,9 +41,10 @@ export default function TransactionList({ transactions, envelopes }: Props) {
   const [search, setSearch] = useState('')
   const [addOpen, setAddOpen] = useState(false)
   const [editingTx, setEditingTx] = useState<TxWithRelations | null>(null)
-  const [deleting, setDeleting] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<Set<string>>(new Set())
 
   const filtered = transactions.filter(tx => {
+    if (pendingDelete.has(tx.id)) return false
     if (filterEnvelope && tx.envelope_id !== filterEnvelope) return false
     if (filterType && tx.type !== filterType) return false
     if (search) {
@@ -57,11 +58,35 @@ export default function TransactionList({ transactions, envelopes }: Props) {
     return true
   })
 
-  async function deleteTransaction(id: string) {
-    setDeleting(id)
-    const { error } = await supabase.from('transactions').delete().eq('id', id)
-    if (error) { toast.error(error.message) } else { toast.success('Deleted'); router.refresh() }
-    setDeleting(null)
+  function deleteTransaction(tx: TxWithRelations) {
+    // Optimistically hide the row; defer the actual DB delete until the undo window closes
+    setPendingDelete(prev => new Set(prev).add(tx.id))
+    let undone = false
+
+    const restore = () => setPendingDelete(prev => {
+      const next = new Set(prev)
+      next.delete(tx.id)
+      return next
+    })
+
+    const timer = setTimeout(async () => {
+      if (undone) return
+      const { error } = await supabase.from('transactions').delete().eq('id', tx.id)
+      if (error) {
+        toast.error(`Failed to delete: ${error.message}`)
+        restore()
+      } else {
+        router.refresh()
+      }
+    }, 5000)
+
+    toast(`Deleted: ${tx.description || tx.merchant || TYPE_LABEL[tx.type]}`, {
+      duration: 5000,
+      action: {
+        label: 'Undo',
+        onClick: () => { undone = true; clearTimeout(timer); restore() },
+      },
+    })
   }
 
   const envelopeBalances: EnvelopeBalance[] = envelopes.map(e => ({
@@ -84,16 +109,17 @@ export default function TransactionList({ transactions, envelopes }: Props) {
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>
-        <div style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '22px',
-          letterSpacing: '-0.01em',
+        <h1 style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize: '32px',
+          fontWeight: 800,
+          letterSpacing: '-0.04em',
           color: 'var(--text-display)',
         }}>
           Transactions
-        </div>
+        </h1>
         <button className="btn btn-primary" onClick={() => setAddOpen(true)}>
-          + Add
+          + Add transaction
         </button>
       </div>
 
@@ -157,7 +183,7 @@ export default function TransactionList({ transactions, envelopes }: Props) {
                 gap: '12px',
                 padding: '12px 20px',
                 borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none',
-                animationDelay: `${i * 20}ms`,
+                animationDelay: `${Math.min(i, 10) * 20}ms`,
               }}
             >
               {/* Avatar */}
@@ -236,8 +262,8 @@ export default function TransactionList({ transactions, envelopes }: Props) {
 
               {/* Delete */}
               <button
-                onClick={() => deleteTransaction(tx.id)}
-                disabled={deleting === tx.id}
+                onClick={() => deleteTransaction(tx)}
+                aria-label="Delete transaction"
                 style={{
                   fontFamily: 'var(--font-mono)',
                   fontSize: '14px',
@@ -246,7 +272,6 @@ export default function TransactionList({ transactions, envelopes }: Props) {
                   cursor: 'pointer',
                   color: 'var(--text-disabled)',
                   padding: '4px 8px',
-                  opacity: deleting === tx.id ? 0.4 : 1,
                   letterSpacing: '0',
                 }}
                 title="Delete"

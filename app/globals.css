@@ -2,120 +2,122 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Neo-Bank Palette - Premium Light */
-  --bg-primary: #F8FAFC;
-  --bg-surface: #FFFFFF;
-  --bg-elevated: #FFFFFF;
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-disabled: #94A3B8;
-  --border-subtle: rgba(226, 232, 240, 0.8);
-  --border-strong: #E2E8F0;
-  
-  --accent: #4F46E5;
-  --accent-gradient: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-  --accent-light: rgba(79, 70, 229, 0.05);
-  --accent-text: #4F46E5;
-  
-  --success: #10B981;
-  --success-light: #D1FAE5;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  --danger-light: #FEE2E2;
+/* ─────────────────────────────────────────────
+   CONCRETE LEMON
+   Brutalist restraint with a single lemon jolt.
+   See DESIGN.md.
+   ───────────────────────────────────────────── */
 
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px 0 rgba(0, 0, 0, 0.01);
-  --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-  
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 28px;
-  --radius-pill: 9999px;
-  
+:root {
+  /* Foundation */
+  --bg-primary:   #D9D6D0;  /* neutral — page foundation */
+  --bg-subtle:    #CFCBC4;  /* one step darker than primary, for inset wells */
+  --bg-surface:   #F0EDE6;  /* surface — cards */
+  --bg-elevated:  #F0EDE6;
+
+  /* Type */
+  --text-primary:   #1A1A1A;
+  --text-secondary: #6B6B6B;
+  --text-disabled:  #9A9A9A;
+  --text-display:   #1A1A1A;
+
+  /* Borders */
+  --border-subtle: rgba(26, 26, 26, 0.10);
+  --border-strong: rgba(26, 26, 26, 0.22);
+  --border-visible: rgba(26, 26, 26, 0.16);
+
+  /* The single accent. Reserve it. */
+  --accent:        #D4E157;
+  --accent-light:  rgba(212, 225, 87, 0.22);
+  --accent-text:   #1A1A1A;       /* text ON accent */
+  --on-accent:     #1A1A1A;
+
+  /* Semantic */
+  --success:        #1E8E5C;
+  --success-light:  #E0EFE5;
+  --warning:        #B97300;
+  --warning-light:  #F6E6C8;
+  --danger:         #C8392B;
+  --danger-light:   #F4D9D5;
+
+  /* Surface raise for chips / wells */
+  --surface-raised: #E6E2DA;
+
+  /* Shadows — used sparingly. Concrete Lemon is flat. */
+  --shadow-sm: 0 1px 0 0 rgba(26, 26, 26, 0.06);
+  --shadow-md: 0 2px 0 0 rgba(26, 26, 26, 0.08);
+  --shadow-lg: 0 4px 0 0 rgba(26, 26, 26, 0.10);
+
+  /* Radii — sharp. Cards get 2px max. */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-pill: 0px;
+
   color-scheme: light;
 }
 
 .dark {
-    /* Neo-Bank Palette - Premium Dark */
-    --bg-primary: #020617;
-    --bg-surface: rgba(15, 23, 42, 0.8);
-    --bg-elevated: #1E293B;
-    --text-primary: #F8FAFC;
-    --text-secondary: #94A3B8;
-    --text-disabled: #475569;
-    --border-subtle: rgba(51, 65, 85, 0.5);
-    --border-strong: #334155;
-    
-    --accent: #6366F1;
-    --accent-gradient: linear-gradient(135deg, #6366F1 0%, #818CF8 100%);
-    --accent-light: rgba(99, 102, 241, 0.1);
-    --accent-text: #A5B4FC;
+  --bg-primary:   #1A1A1A;
+  --bg-subtle:    #242424;
+  --bg-surface:   #262626;
+  --bg-elevated:  #2C2C2C;
 
-    --success: #10B981;
-    --success-light: rgba(16, 185, 129, 0.1);
-    --warning: #F59E0B;
-    --danger: #EF4444;
-    --danger-light: rgba(239, 68, 68, 0.1);
+  --text-primary:   #F0EDE6;
+  --text-secondary: #A8A8A8;
+  --text-disabled:  #6B6B6B;
+  --text-display:   #F0EDE6;
 
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-    
-    color-scheme: dark;
+  --border-subtle:  rgba(240, 237, 230, 0.10);
+  --border-strong:  rgba(240, 237, 230, 0.22);
+  --border-visible: rgba(240, 237, 230, 0.16);
+
+  --accent:        #D4E157;
+  --accent-light:  rgba(212, 225, 87, 0.16);
+  --accent-text:   #1A1A1A;
+  --on-accent:     #1A1A1A;
+
+  --success-light:  rgba(30, 142, 92, 0.18);
+  --warning-light:  rgba(185, 115, 0, 0.20);
+  --danger-light:   rgba(200, 57, 43, 0.20);
+
+  --surface-raised: #303030;
+
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-@keyframes mesh-move {
-  0%   { background-position: 0% 0%; }
-  50%  { background-position: 100% 100%; }
-  100% { background-position: 0% 0%; }
-}
-
 body {
   font-family: var(--font-sans);
   background: var(--bg-primary);
-  background-image: 
-    radial-gradient(at 0% 0%, var(--accent-light) 0, transparent 50%), 
-    radial-gradient(at 50% 0%, rgba(124, 58, 237, 0.05) 0, transparent 50%);
-  background-size: 200% 200%;
-  animation: mesh-move 20s ease-infinite;
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   letter-spacing: -0.01em;
 }
 
-.dark body {
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0, transparent 50%), 
-    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.05) 0, transparent 50%);
-  /* Add subtle noise */
-  position: relative;
-}
-
-.dark body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.025;
-  pointer-events: none;
-  z-index: 0;
-}
-
 /* ─── Scrollbar ────────────────────────────────── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border-subtle); }
 ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
 
-/* ─── Typography Refinements ────────────────────── */
+/* ─── Typography ───────────────────────────────── */
 h1, h2, h3, h4 {
-  letter-spacing: -0.03em;
-  font-feature-settings: "cv02", "cv05", "cv11";
+  font-family: var(--font-sans);
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 /* Focus rings */
@@ -128,33 +130,24 @@ h1, h2, h3, h4 {
 .card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), 
-              box-shadow 0.2s ease, 
-              border-color 0.2s ease,
-              background-color 0.2s ease;
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+  transition: border-color 150ms ease, transform 120ms ease;
   position: relative;
-  overflow: hidden;
-}
-
-.dark .card {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  background: rgba(15, 23, 42, 0.7);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), var(--shadow-sm);
 }
 
 .card:hover {
-  box-shadow: var(--shadow-md);
   border-color: var(--border-strong);
 }
 
 .interactive-card {
   cursor: pointer;
 }
+.interactive-card:hover {
+  border-color: var(--text-primary);
+}
 .interactive-card:active {
-  transform: scale(0.98);
+  transform: translateY(1px);
 }
 
 /* ─── Buttons ────────────────────────────────── */
@@ -163,101 +156,108 @@ h1, h2, h3, h4 {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 24px;
-  border-radius: var(--radius-pill);
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
   font-family: var(--font-sans);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  border: none;
-  transition: opacity 150ms ease, transform 150ms ease, background-color 150ms ease;
+  border: 1px solid transparent;
+  transition: background-color 120ms ease, color 120ms ease, transform 120ms ease;
   white-space: nowrap;
-  min-height: 48px; /* Mobile touch target size */
+  min-height: 48px;
   text-decoration: none;
+  letter-spacing: 0.01em;
 }
 
 .btn:active {
-  transform: scale(0.96);
+  transform: translateY(1px);
 }
 
+/* The lemon CTA. One per screen. */
 .btn-primary {
-  background: var(--accent-gradient);
-  color: white;
-  box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.3);
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
 }
-.btn-primary:hover { 
-  opacity: 0.95; 
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+.btn-primary:hover {
+  background: #C5D44A;
+  border-color: #C5D44A;
 }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.dark .btn-primary {
-  box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.5);
-}
-.dark .btn-primary:hover {
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .btn-ghost {
-  background: var(--bg-primary);
+  background: transparent;
   color: var(--text-primary);
+  border-color: var(--border-strong);
 }
 .btn-ghost:hover {
-  background: var(--border-subtle);
+  background: var(--surface-raised);
+  border-color: var(--text-primary);
 }
-.btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ghost:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 
 .btn-danger {
-  background: var(--danger-light);
-  color: var(--danger);
+  background: var(--danger);
+  color: #F0EDE6;
+  border-color: var(--danger);
 }
-.btn-danger:hover { opacity: 0.8; }
+.btn-danger:hover {
+  background: #B2322C;
+  border-color: #B2322C;
+}
 
+/* FAB — squared per brutalist spec, lemon */
 .fab {
   position: fixed;
   bottom: calc(80px + env(safe-area-inset-bottom));
   right: 20px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: var(--accent-gradient);
-  color: white;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: var(--accent);
+  color: var(--on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 30px -4px rgba(79, 70, 229, 0.6);
   cursor: pointer;
   z-index: 50;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border: none;
-  animation: float 3s ease-in-out infinite;
+  border: 1px solid var(--text-primary);
+  box-shadow: var(--shadow-md);
+  transition: transform 120ms ease, box-shadow 120ms ease;
 }
 .fab:hover {
-  box-shadow: 0 12px 40px -4px rgba(79, 70, 229, 0.7);
+  box-shadow: var(--shadow-lg);
 }
 .fab:active {
-  transform: scale(0.92);
-  animation: none;
+  transform: translateY(2px);
+  box-shadow: var(--shadow-sm);
 }
 
 /* ─── Inputs ─────────────────────────────────── */
 .input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   font-family: var(--font-sans);
-  font-size: 16px; /* Prevents iOS zoom */
+  font-size: 16px; /* prevents iOS zoom */
   background: var(--bg-surface);
   color: var(--text-primary);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 120ms ease;
   appearance: none;
   -webkit-appearance: none;
 }
 .input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-light);
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px var(--accent);
 }
 .input::placeholder { color: var(--text-disabled); }
 
@@ -269,28 +269,31 @@ option {
 /* ─── Labels ─────────────────────────────────── */
 .label {
   display: block;
-  font-family: var(--font-sans);
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--text-secondary);
   margin-bottom: 8px;
 }
 
 /* ─── Amounts ────────────────────────────────── */
 .amount {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
-/* ─── Animations ─────────────────────────────── */
+/* ─── Animations — kept minimal, no shimmer/glow ── */
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 
 @keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -304,44 +307,34 @@ option {
   to   { transform: translateY(0); }
 }
 
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+.animate-fade-in { animation: fadeIn 240ms ease both; }
+.animate-slide-up { animation: fadeSlideIn 240ms ease both; }
+
+/* Stagger animation for transaction rows — capped delay handled inline */
+.stagger-item {
+  animation: fadeSlideIn 240ms ease both;
 }
 
-@keyframes pulse-ring {
-  0%   { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
-  70%  { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+.interactive-row {
+  cursor: default;
+  transition: background-color 120ms ease;
 }
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-4px); }
+.interactive-row:hover {
+  background: var(--surface-raised);
 }
-
-.animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.animate-slide-up { animation: fadeSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 /* ─── Modal ──────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(26, 26, 26, 0.45);
   display: flex;
   justify-content: flex-end;
   align-items: stretch;
   z-index: 9999;
-  animation: fadeIn 0.3s ease both;
+  animation: fadeIn 200ms ease both;
 }
 
-.dark .modal-overlay {
-  background: rgba(0, 0, 0, 0.6);
-}
-
-/* Hide mobile bottom nav when a modal is open */
 body:has(.modal-overlay) .mobile-bottom-nav {
   display: none !important;
 }
@@ -350,26 +343,18 @@ body:has(.modal-overlay) .mobile-bottom-nav {
   background: var(--bg-surface);
   width: 100%;
   max-width: 480px;
-  height: 100dvh; /* Use dynamic viewport height */
+  height: 100dvh;
   overflow-y: auto;
-  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.15);
-  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-  border-left: 1px solid var(--border-subtle);
-  border-radius: 0 !important;
+  animation: slideInRight 280ms ease both;
+  border-left: 1px solid var(--border-strong);
+  border-radius: 0;
   position: relative;
 }
 
 @media (max-width: 768px) {
   .modal {
-    padding-bottom: 120px !important; /* Ensure content clears mobile bottom nav */
+    padding-bottom: 120px !important;
   }
-}
-
-.dark .modal {
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5), inset 1px 0 0 rgba(255,255,255,0.05);
 }
 
 /* ─── Mobile Utilities ───────────────────────── */
@@ -379,17 +364,31 @@ body:has(.modal-overlay) .mobile-bottom-nav {
     max-height: 90vh;
     margin: 0;
     margin-top: auto;
-    border-top-left-radius: var(--radius-xl);
-    border-top-right-radius: var(--radius-xl);
+    border-radius: 0;
     padding: 24px;
     padding-bottom: calc(24px + env(safe-area-inset-bottom));
-    animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: slideInUp 280ms ease both;
     border-left: none;
-    border-top: 1px solid var(--border-subtle);
+    border-top: 1px solid var(--border-strong);
   }
-  
+
   .modal-overlay {
     align-items: flex-end;
     justify-content: center;
   }
 }
+
+/* Edge-fade for horizontally scrolling strips */
+.scroll-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+  scroll-snap-type: x mandatory;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 24px), transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 24px), transparent 100%);
+}
+.scroll-strip::-webkit-scrollbar { display: none; }
+.scroll-strip > * { scroll-snap-align: start; flex-shrink: 0; }

@@ -136,45 +136,32 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
   return (
     <div className="animate-fade-in">
 
-      {/* Hero Header */}
-      <div style={{
-        background: 'var(--bg-surface)',
-        borderRadius: 'var(--radius-xl)',
-        padding: '32px 24px',
-        marginBottom: '24px',
-        boxShadow: 'var(--shadow-sm)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <div style={{ fontSize: '24px', fontWeight: '800', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-              Recurring
-            </div>
-            <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-              {monthLabel}
-            </div>
-          </div>
-          <button className="btn btn-primary" onClick={() => setAddOpen(true)} style={{ borderRadius: 'var(--radius-pill)', padding: '10px 16px', minHeight: 'auto' }}>
-            <Plus size={18} style={{ marginRight: '4px' }} /> Add
-          </button>
+      {/* Page header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '32px', fontWeight: 800, letterSpacing: '-0.04em', color: 'var(--text-display)' }}>
+            Recurring
+          </h1>
+          <div className="eyebrow" style={{ marginTop: '6px' }}>{monthLabel}</div>
         </div>
+        <button className="btn btn-primary" onClick={() => setAddOpen(true)}>
+          <Plus size={16} /> Add item
+        </button>
+      </div>
 
-        {/* Summary Stats */}
-        <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
-          {[
-            { label: 'Left to Pay', value: formatMoney(totalDue), count: `${unpaidCount} item${unpaidCount !== 1 ? 's' : ''}`, color: 'var(--warning)' },
-            { label: 'Paid This Month', value: formatMoney(totalPaid), count: `${paidCount} item${paidCount !== 1 ? 's' : ''}`, color: 'var(--success)' },
-            { label: 'Total Monthly', value: formatMoney(totalMonthly), count: `${bills.filter(b => b.active).length} items`, color: 'var(--accent)' },
-          ].map(stat => (
-            <div key={stat.label} style={{ flex: '1 0 140px', background: 'var(--bg-primary)', padding: '16px', borderRadius: 'var(--radius-lg)', borderLeft: `4px solid ${stat.color}` }}>
-              <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{stat.label}</div>
-              <div style={{ fontSize: '22px', fontWeight: '800', color: stat.color, marginTop: '8px', fontFamily: 'var(--font-mono)' }}>{stat.value}</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-disabled)', marginTop: '4px' }}>{stat.count}</div>
-            </div>
-          ))}
-        </div>
+      {/* Summary Stats */}
+      <div className="scroll-strip" style={{ marginBottom: '28px' }}>
+        {[
+          { label: 'Left to Pay', value: formatMoney(totalDue), count: `${unpaidCount} item${unpaidCount !== 1 ? 's' : ''}`, color: 'var(--warning)' },
+          { label: 'Paid This Month', value: formatMoney(totalPaid), count: `${paidCount} item${paidCount !== 1 ? 's' : ''}`, color: 'var(--success)' },
+          { label: 'Total Monthly', value: formatMoney(totalMonthly), count: `${bills.filter(b => b.active).length} items`, color: 'var(--accent)' },
+        ].map(stat => (
+          <div key={stat.label} className="card" style={{ width: '220px', padding: '16px', borderLeft: `4px solid ${stat.color}` }}>
+            <div className="eyebrow">{stat.label}</div>
+            <div className="amount" style={{ fontSize: '24px', color: 'var(--text-primary)', marginTop: '8px' }}>{stat.value}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-disabled)', marginTop: '4px' }}>{stat.count}</div>
+          </div>
+        ))}
       </div>
 
       {/* This Month's Items */}
@@ -247,14 +234,14 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
 
                 {/* Actions / Amount */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', fontWeight: '700', color: isPaid ? 'var(--success)' : isOverdue ? 'var(--danger)' : 'var(--text-primary)' }}>
+                  <div className="amount" style={{ fontSize: '16px', color: isPaid ? 'var(--success)' : isOverdue ? 'var(--danger)' : 'var(--text-primary)' }}>
                     {formatMoney(instance.amount)}
                   </div>
                   {!isPaid && !isSkipped && (
                     <button
                       onClick={() => markSkipped(instance)}
                       disabled={marking === instance.id}
-                      style={{ background: 'var(--bg-primary)', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-strong)', borderRadius: '0', padding: '4px 8px', fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                     >
                       <FastForward size={12} /> Skip
                     </button>
@@ -275,7 +262,7 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '12px' }}>
             {bills.map(bill => (
               <div key={bill.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px' }}>
-                <div style={{ fontSize: '24px', flexShrink: 0, background: 'var(--bg-primary)', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px' }}>
+                <div style={{ fontSize: '24px', flexShrink: 0, background: 'var(--bg-primary)', border: '1px solid var(--border-subtle)', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0' }}>
                   {bill.icon}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -286,7 +273,7 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
                 </div>
                 <button
                   onClick={() => archiveBill(bill.id)}
-                  style={{ background: 'var(--danger-light)', border: 'none', cursor: 'pointer', color: 'var(--danger)', padding: '8px', borderRadius: '8px', display: 'flex' }}
+                  style={{ background: 'var(--danger-light)', border: '1px solid var(--danger)', cursor: 'pointer', color: 'var(--danger)', padding: '8px', borderRadius: '0', display: 'flex' }}
                   title="Archive item"
                 >
                   <ArchiveX size={16} />

@@ -53,28 +53,22 @@ export default function AppShell({ children, profile }: AppShellProps) {
           height: '100vh',
         }}>
 
-          {/* Brand */}
+          {/* Brand — flat wordmark with lemon underline as the jolt */}
           <div style={{ marginBottom: '40px', paddingLeft: '12px' }}>
             <div style={{
               fontFamily: 'var(--font-sans)',
-              fontSize: '26px',
+              fontSize: '28px',
               fontWeight: '800',
-              background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #3B82F6 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              letterSpacing: '-0.03em',
+              color: 'var(--text-primary)',
+              letterSpacing: '-0.04em',
+              lineHeight: 1,
+              display: 'inline-block',
+              borderBottom: '4px solid var(--accent)',
+              paddingBottom: '2px',
             }}>
               Velop
             </div>
-            <div style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: '12px',
-              fontWeight: '500',
-              color: 'var(--text-disabled)',
-              marginTop: '4px',
-              letterSpacing: '0.02em',
-            }}>
+            <div className="eyebrow" style={{ marginTop: '10px' }}>
               {householdName}
             </div>
           </div>
@@ -126,21 +120,15 @@ export default function AppShell({ children, profile }: AppShellProps) {
               width: '38px',
               height: '38px',
               borderRadius: '50%',
-              background: 'var(--accent-gradient)',
-              padding: '2px',
+              background: 'var(--accent)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'var(--font-sans)',
+              fontSize: '14px', fontWeight: '800',
+              color: 'var(--on-accent)',
               flexShrink: 0,
+              border: '1px solid var(--text-primary)',
             }}>
-              <div style={{
-                width: '100%', height: '100%',
-                borderRadius: '50%',
-                background: 'var(--bg-surface)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--font-sans)',
-                fontSize: '14px', fontWeight: '700',
-                color: 'var(--accent)',
-              }}>
-                {profile.display_name.charAt(0).toUpperCase()}
-              </div>
+              {profile.display_name.charAt(0).toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
@@ -191,8 +179,7 @@ export default function AppShell({ children, profile }: AppShellProps) {
         top: 0,
         zIndex: 40,
         background: 'var(--bg-primary)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--border-subtle)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
@@ -234,17 +221,15 @@ export default function AppShell({ children, profile }: AppShellProps) {
         </button>
       </header>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation — flat concrete, lemon dot marks active */}
       <nav className="mobile-bottom-nav" style={{
         display: 'none',
         position: 'fixed',
         bottom: 0,
         left: 0,
         right: 0,
-        background: 'rgba(255,255,255,0.75)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        borderTop: '1px solid rgba(226, 232, 240, 0.5)',
+        background: 'var(--bg-surface)',
+        borderTop: '1px solid var(--border-strong)',
         padding: '6px 12px calc(6px + env(safe-area-inset-bottom))',
         zIndex: 100,
       }}>
@@ -280,11 +265,9 @@ export default function AppShell({ children, profile }: AppShellProps) {
                 </span>
                 {active && <div style={{
                   position: 'absolute',
-                  bottom: '-2px',
-                  width: '4px', height: '4px',
-                  borderRadius: '50%',
+                  bottom: '0',
+                  width: '20px', height: '3px',
                   background: 'var(--accent)',
-                  boxShadow: '0 0 6px var(--accent)',
                 }} />}
               </Link>
             )
@@ -302,21 +285,11 @@ export default function AppShell({ children, profile }: AppShellProps) {
         
         .nav-item:hover {
           background: var(--accent-light) !important;
-          color: var(--accent) !important;
-          transform: translateX(4px);
+          color: var(--text-primary) !important;
         }
-        
+
         .nav-item-active {
-          box-shadow: inset 4px 0 0 -1px var(--accent);
-        }
-        
-        .dark .mobile-bottom-nav {
-          background: rgba(2, 6, 23, 0.8) !important;
-          border-top-color: rgba(51, 65, 85, 0.4) !important;
-        }
-        
-        .dark .mobile-header {
-          background: rgba(2, 6, 23, 0.85) !important;
+          box-shadow: inset 3px 0 0 0 var(--accent);
         }
       `}</style>
     </div>

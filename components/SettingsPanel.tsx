@@ -160,7 +160,7 @@ export default function SettingsPanel({ profile, members }: Props) {
               </div>
               <div>
                 <div style={{ fontWeight: '500', fontSize: '14px' }}>{m.display_name}</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                   {m.id === profile?.id ? 'You · ' : ''}
                   Joined {new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                 </div>
@@ -183,7 +183,7 @@ export default function SettingsPanel({ profile, members }: Props) {
               {inviteLink}
             </div>
           )}
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>
             Share this link with your wife so she can join your household. Link expires in 7 days.
           </p>
         </div>

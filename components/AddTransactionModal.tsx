@@ -228,7 +228,7 @@ export default function AddTransactionModal({ envelopes, defaultEnvelope, onClos
               textTransform: 'uppercase',
               background: 'none',
               border: '1px solid var(--border-strong)',
-              borderRadius: '4px',
+              borderRadius: '0',
               color: 'var(--text-secondary)',
               cursor: 'pointer',
               padding: '4px 10px',

@@ -40,7 +40,7 @@ export default function InviteClient({ invite, profile }: { invite: any, profile
         
         {isAlreadyMember ? (
           <>
-            <h1 style={{ fontSize: '20px', fontWeight: 'bold' }}>You're already in!</h1>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.03em' }}>You're already in!</h1>
             <p style={{ marginTop: '8px', color: 'var(--text-secondary)' }}>
               You are already a member of <strong style={{ color: 'var(--text-primary)' }}>{householdName}</strong>.
             </p>
@@ -54,7 +54,7 @@ export default function InviteClient({ invite, profile }: { invite: any, profile
           </>
         ) : (
           <>
-            <h1 style={{ fontSize: '20px', fontWeight: 'bold' }}>Join {householdName}</h1>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.03em' }}>Join {householdName}</h1>
             <p style={{ marginTop: '8px', color: 'var(--text-secondary)' }}>
               <strong style={{ color: 'var(--text-primary)' }}>{inviterName}</strong> invited you to join their budget. 
               Accepting this invite will link your account to their envelopes and transactions.

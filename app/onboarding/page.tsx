@@ -41,8 +41,20 @@ export default function OnboardingPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
       <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '400px', padding: '40px 36px' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>💌</div>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', letterSpacing: '-0.5px' }}>Welcome!</h1>
+          <div style={{
+            display: 'inline-block',
+            fontFamily: 'var(--font-sans)',
+            fontSize: '36px',
+            fontWeight: 800,
+            letterSpacing: '-0.04em',
+            color: 'var(--text-primary)',
+            borderBottom: '5px solid var(--accent)',
+            paddingBottom: '2px',
+            lineHeight: 1,
+          }}>
+            Velop
+          </div>
+          <h1 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.03em', marginTop: '20px' }}>Welcome</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>
             Let's set up your household budget
           </p>
@@ -70,7 +82,7 @@ export default function OnboardingPage() {
               placeholder="Smith Family Budget"
               required
             />
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
               You can invite others to join later
             </p>
           </div>

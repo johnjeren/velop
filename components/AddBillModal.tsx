@@ -111,7 +111,7 @@ export default function AddBillModal({ envelopes, onClose, onSaved }: Props) {
               textTransform: 'uppercase',
               background: 'none',
               border: '1px solid var(--border-strong)',
-              borderRadius: '4px',
+              borderRadius: '0',
               color: 'var(--text-secondary)',
               cursor: 'pointer',
               padding: '4px 10px',
@@ -149,11 +149,11 @@ export default function AddBillModal({ envelopes, onClose, onSaved }: Props) {
                     <button
                       key={ic} type="button"
                       onClick={() => { setIcon(ic); setShowIconPicker(false) }}
-                      style={{ 
-                        fontSize: '22px', border: 'none', cursor: 'pointer', 
-                        padding: '6px', borderRadius: '8px', 
+                      style={{
+                        fontSize: '22px', border: ic === icon ? '1px solid var(--accent)' : '1px solid transparent', cursor: 'pointer',
+                        padding: '6px', borderRadius: '0',
                         background: ic === icon ? 'var(--accent-light)' : 'transparent',
-                        transition: 'background 0.2s ease' 
+                        transition: 'background 120ms ease'
                       }}
                     >
                       {ic}

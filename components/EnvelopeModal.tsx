@@ -232,7 +232,7 @@ export default function EnvelopeModal({ envelope, onClose, onSaved }: Props) {
               type="button"
               onClick={handleArchive}
               disabled={deleting}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '13px', textAlign: 'center' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '13px', textAlign: 'center' }}
             >
               {deleting ? 'Archiving…' : 'Archive envelope'}
             </button>

@@ -45,9 +45,20 @@ export default function SignupPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
       <div className="card animate-fade-in" style={{ width: '100%', maxWidth: '400px', padding: '40px 36px' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>💌</div>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', letterSpacing: '-0.5px' }}>Create Account</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>
+          <div style={{
+            display: 'inline-block',
+            fontFamily: 'var(--font-sans)',
+            fontSize: '36px',
+            fontWeight: 800,
+            letterSpacing: '-0.04em',
+            color: 'var(--text-primary)',
+            borderBottom: '5px solid var(--accent)',
+            paddingBottom: '2px',
+            lineHeight: 1,
+          }}>
+            Velop
+          </div>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '16px' }}>
             Start budgeting together
           </p>
         </div>
@@ -102,7 +113,7 @@ export default function SignupPage() {
 
         <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: 'var(--text-secondary)' }}>
           Already have an account?{' '}
-          <Link href="/login" style={{ color: 'var(--accent)', fontWeight: '500', textDecoration: 'none' }}>
+          <Link href="/login" style={{ color: 'var(--text-primary)', fontWeight: 700, textDecoration: 'underline', textDecorationColor: 'var(--accent)', textDecorationThickness: '2px', textUnderlineOffset: '3px' }}>
             Sign in
           </Link>
         </p>
