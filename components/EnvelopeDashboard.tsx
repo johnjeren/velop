@@ -34,9 +34,9 @@ function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-function EnvelopeCard({ env, onOpenAddTx, onOpenEditEnv, index }: {
+function EnvelopeCard({ env, onOpenDetail, onOpenEditEnv, index }: {
   env: EnvelopeBalance
-  onOpenAddTx: (env: EnvelopeBalance) => void
+  onOpenDetail: (env: EnvelopeBalance) => void
   onOpenEditEnv: (env: EnvelopeBalance) => void
   index: number
 }) {
@@ -105,12 +105,12 @@ function EnvelopeCard({ env, onOpenAddTx, onOpenEditEnv, index }: {
       className="card interactive-card"
       role="button"
       tabIndex={0}
-      aria-label={`Add transaction to ${env.name}`}
-      onClick={() => onOpenAddTx(env)}
+      aria-label={`Open ${env.name} envelope`}
+      onClick={() => onOpenDetail(env)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          onOpenAddTx(env)
+          onOpenDetail(env)
         }
       }}
       style={{
@@ -438,7 +438,7 @@ export default function EnvelopeDashboard({ balances, recentTransactions, upcomi
             key={env.envelope_id}
             env={env}
             index={i}
-            onOpenAddTx={(e) => { setAddTxEnvelope(e); setAddTxOpen(true) }}
+            onOpenDetail={(e) => router.push(`/envelopes/${e.envelope_id}`)}
             onOpenEditEnv={(e) => { setEditEnvelope(e); setEnvelopeModalOpen(true) }}
           />
         ))}
