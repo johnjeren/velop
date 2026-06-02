@@ -138,8 +138,8 @@ export default function SpendingCharts({ transactions, envelopes }: Props) {
         ) : (
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={monthlyData} margin={{ top: 0, right: 0, left: -10, bottom: 0 }}>
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--text-secondary)', style: { fontVariantNumeric: 'tabular-nums' } }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: 'var(--text-secondary)', style: { fontVariantNumeric: 'tabular-nums' } }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
               <Tooltip formatter={(v: number) => formatMoney(v)} contentStyle={{ borderRadius: '0', border: '1px solid var(--border-strong)', background: 'var(--bg-surface)', color: 'var(--text-primary)', fontSize: '13px' }} />
               <Bar dataKey="total" fill="var(--accent)" radius={0} />
             </BarChart>
@@ -176,7 +176,7 @@ export default function SpendingCharts({ transactions, envelopes }: Props) {
           ) : (
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={budgetVsActual} layout="vertical" margin={{ top: 0, right: 0, left: 60, bottom: 0 }}>
-                <XAxis type="number" tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: 'var(--text-secondary)', style: { fontVariantNumeric: 'tabular-nums' } }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
                 <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} width={60} />
                 <Tooltip formatter={(v: number) => formatMoney(v)} contentStyle={{ borderRadius: '0', border: '1px solid var(--border-strong)', background: 'var(--bg-surface)', color: 'var(--text-primary)', fontSize: '13px' }} />
                 <Bar dataKey="budget" fill="var(--surface-raised)" radius={0} name="Budget" />

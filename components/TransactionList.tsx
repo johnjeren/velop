@@ -109,11 +109,8 @@ export default function TransactionList({ transactions, envelopes }: Props) {
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>
-        <h1 style={{
+        <h1 className="t-28" style={{
           fontFamily: 'var(--font-sans)',
-          fontSize: '32px',
-          fontWeight: 800,
-          letterSpacing: '-0.04em',
           color: 'var(--text-display)',
         }}>
           Transactions
@@ -182,7 +179,7 @@ export default function TransactionList({ transactions, envelopes }: Props) {
                 alignItems: 'center',
                 gap: '12px',
                 padding: '12px 20px',
-                borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none',
+                borderBottom: i < filtered.length - 1 ? '1px solid var(--border-subtle)' : 'none',
                 animationDelay: `${Math.min(i, 10) * 20}ms`,
               }}
             >

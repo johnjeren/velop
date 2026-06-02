@@ -101,7 +101,7 @@ export default function SettingsPanel({ profile, members }: Props) {
                 key={c}
                 onClick={() => setAvatarColor(c)}
                 style={{
-                  width: '24px', height: '24px', borderRadius: '50%', background: c,
+                  width: '24px', height: '24px', background: c,
                   border: avatarColor === c ? '3px solid var(--text-primary)' : '3px solid transparent',
                   cursor: 'pointer',
                 }}

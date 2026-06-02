@@ -211,7 +211,7 @@ export default function EnvelopeModal({ envelope, onClose, onSaved }: Props) {
                   key={c} type="button"
                   onClick={() => setColor(c)}
                   style={{
-                    width: '28px', height: '28px', borderRadius: '50%', background: c,
+                    width: '28px', height: '28px', background: c,
                     border: color === c ? '3px solid var(--text-primary)' : '3px solid transparent',
                     cursor: 'pointer', transition: 'border 0.1s ease',
                   }}

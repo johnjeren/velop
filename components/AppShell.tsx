@@ -96,12 +96,10 @@ export default function AppShell({ children, profile }: AppShellProps) {
                     color: active ? 'var(--accent)' : 'var(--text-secondary)',
                     background: active ? 'var(--accent-light)' : 'transparent',
                     textDecoration: 'none',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transition: 'background-color 120ms ease, color 120ms ease',
                   }}
                 >
-                  <Icon size={20} strokeWidth={active ? 2.5 : 2} style={{ 
-                    filter: active ? 'drop-shadow(0 0 8px var(--accent-light))' : 'none'
-                  }} />
+                  <Icon size={20} strokeWidth={active ? 2.5 : 2} />
                   {item.label}
                 </Link>
               )
@@ -188,7 +186,7 @@ export default function AppShell({ children, profile }: AppShellProps) {
             height: '28px',
             borderRadius: '50%',
             background: 'var(--accent)',
-            color: 'white',
+            color: 'var(--on-accent)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -286,7 +284,7 @@ export default function AppShell({ children, profile }: AppShellProps) {
           main { padding: 24px 16px !important; padding-bottom: 120px !important; }
         }
 
-        .nav-item:hover {
+        .nav-item:not(.nav-item-active):hover {
           background: var(--accent-light) !important;
           color: var(--text-primary) !important;
         }

@@ -139,7 +139,7 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
       {/* Page header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '32px', fontWeight: 800, letterSpacing: '-0.04em', color: 'var(--text-display)' }}>
+          <h1 className="t-28" style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-display)' }}>
             Recurring
           </h1>
           <div className="eyebrow" style={{ marginTop: '6px' }}>{monthLabel}</div>
@@ -154,11 +154,11 @@ export default function BillsTracker({ bills, instances, envelopes }: Props) {
         {[
           { label: 'Left to Pay', value: formatMoney(totalDue), count: `${unpaidCount} item${unpaidCount !== 1 ? 's' : ''}`, color: 'var(--warning)' },
           { label: 'Paid This Month', value: formatMoney(totalPaid), count: `${paidCount} item${paidCount !== 1 ? 's' : ''}`, color: 'var(--success)' },
-          { label: 'Total Monthly', value: formatMoney(totalMonthly), count: `${bills.filter(b => b.active).length} items`, color: 'var(--accent)' },
+          { label: 'Total Monthly', value: formatMoney(totalMonthly), count: `${bills.filter(b => b.active).length} items`, color: 'var(--text-primary)' },
         ].map(stat => (
           <div key={stat.label} className="card" style={{ width: '220px', padding: '16px', borderLeft: `4px solid ${stat.color}` }}>
             <div className="eyebrow">{stat.label}</div>
-            <div className="amount" style={{ fontSize: '24px', color: 'var(--text-primary)', marginTop: '8px' }}>{stat.value}</div>
+            <div className="amount t-20" style={{ color: 'var(--text-primary)', marginTop: '8px' }}>{stat.value}</div>
             <div style={{ fontSize: '12px', color: 'var(--text-disabled)', marginTop: '4px' }}>{stat.count}</div>
           </div>
         ))}

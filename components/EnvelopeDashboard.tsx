@@ -347,21 +347,19 @@ export default function EnvelopeDashboard({ balances, recentTransactions, upcomi
       }}>
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0,
-          height: '4px', background: 'var(--accent)',
+          height: '4px', background: 'var(--border-strong)',
         }} />
 
         <div className="eyebrow" style={{ marginBottom: '12px' }}>
           Available Balance
         </div>
-        <div className="amount" style={{
-          fontSize: 'clamp(40px, 12vw, 64px)',
-          lineHeight: 1,
+        <div className="amount t-hero" style={{
           color: 'var(--text-primary)',
         }}>
           {formatMoney(totalBalance)}
         </div>
-        <div style={{
-          fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)', marginTop: '12px',
+        <div className="t-12" style={{
+          fontWeight: 500, color: 'var(--text-secondary)', marginTop: '12px',
         }}>
           of {formatMoney(totalBudget)} budgeted this month
         </div>
