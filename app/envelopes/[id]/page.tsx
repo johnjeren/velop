@@ -68,6 +68,23 @@ export default async function EnvelopeDetailPage({ params, searchParams }: PageP
     .eq('household_id', householdId)
     .order('name')
 
+  const { data: bills } = await supabase
+    .from('recurring_bills')
+    .select('id, name, icon, amount, due_day')
+    .eq('household_id', householdId)
+    .eq('envelope_id', params.id)
+    .eq('active', true)
+
+  const billIds = ((bills as any[]) || []).map(b => b.id)
+  const { data: unpaidInstances } = billIds.length
+    ? await supabase
+        .from('bill_instances')
+        .select('id, bill_id, due_date, amount, status')
+        .eq('household_id', householdId)
+        .eq('status', 'unpaid')
+        .in('bill_id', billIds)
+    : { data: [] as any[] }
+
   return (
     <AppShell profile={profile}>
       <EnvelopeDetail
@@ -75,6 +92,8 @@ export default async function EnvelopeDetailPage({ params, searchParams }: PageP
         envelopes={(allEnvelopes as any) || []}
         transactions={(transactions as any) || []}
         monthKey={monthKey}
+        bills={(bills as any) || []}
+        unpaidInstances={(unpaidInstances as any) || []}
       />
     </AppShell>
   )

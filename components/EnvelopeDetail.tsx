@@ -5,8 +5,14 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { ChevronLeft, ChevronRight, ArrowLeft, Plus, Pencil } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowLeft, Plus, Pencil, Minus, ArrowDownLeft, ArrowUpRight } from 'lucide-react'
 import type { EnvelopeBalance, Transaction } from '@/lib/supabase/database.types'
+import {
+  projectUpcomingBills,
+  calculateSolvency,
+  type ForecastBill,
+  type ForecastInstance,
+} from '@/lib/forecast'
 import AddTransactionModal from './AddTransactionModal'
 import EnvelopeModal from './EnvelopeModal'
 
@@ -20,6 +26,8 @@ interface Props {
   envelopes: EnvelopeBalance[]
   transactions: TxWithRelations[]
   monthKey: string
+  bills: ForecastBill[]
+  unpaidInstances: ForecastInstance[]
 }
 
 function formatMoney(n: number) {
@@ -48,7 +56,7 @@ const TYPE_LABEL: Record<string, string> = {
   transfer_in: 'Transfer In',
 }
 
-export default function EnvelopeDetail({ envelope, envelopes, transactions, monthKey }: Props) {
+export default function EnvelopeDetail({ envelope, envelopes, transactions, monthKey, bills, unpaidInstances }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const [addOpen, setAddOpen] = useState(false)
@@ -81,6 +89,9 @@ export default function EnvelopeDetail({ envelope, envelopes, transactions, mont
   const isNew = !envelope.is_goal && balance === 0 && budget === 0
   const pct = target > 0 ? Math.min(1, Math.max(0, balance / target)) : 0
   const isLow = !envelope.is_goal && !isOver && budget > 0 && pct < 0.15
+
+  const upcoming = projectUpcomingBills(bills, unpaidInstances)
+  const solvency = calculateSolvency(balance, upcoming)
 
   let eyebrow: string = 'BUDGET'
   let eyebrowColor = 'var(--text-secondary)'
@@ -184,9 +195,8 @@ export default function EnvelopeDetail({ envelope, envelopes, transactions, mont
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{
-                fontSize: '24px', fontWeight: 800, letterSpacing: '-0.03em',
-                color: 'var(--text-primary)', lineHeight: 1.1,
+              <h1 className="t-20" style={{
+                fontWeight: 800, color: 'var(--text-primary)',
                 marginBottom: '4px',
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
@@ -219,12 +229,12 @@ export default function EnvelopeDetail({ envelope, envelopes, transactions, mont
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
-            <span className="amount" style={{ fontSize: 'clamp(34px, 8vw, 44px)', color: amountColor, letterSpacing: '-0.04em' }}>
+            <span className="amount t-44" style={{ color: amountColor }}>
               {formatMoney(balance)}
             </span>
-            <span style={{
+            <span className="t-14" style={{
               fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums',
-              fontSize: '14px', fontWeight: 500, color: 'var(--text-secondary)',
+              fontWeight: 500, color: 'var(--text-secondary)',
             }}>
               {denominator}
             </span>
@@ -242,6 +252,80 @@ export default function EnvelopeDetail({ envelope, envelopes, transactions, mont
         )}
       </div>
 
+      {upcoming.length > 0 && (() => {
+        const tone = solvency.status === 'underfunded' ? 'danger' : solvency.status === 'tight' ? 'warning' : 'success'
+        const pillLabel = solvency.status === 'underfunded' ? 'SHORT' : solvency.status === 'tight' ? 'TIGHT' : 'ON TRACK'
+        return (
+          <div className="card" style={{
+            padding: 0,
+            marginBottom: '20px',
+            borderLeft: `4px solid var(--${tone})`,
+            overflow: 'hidden',
+          }}>
+            {/* Header row — eyebrow + amount + status pill */}
+            <div style={{ padding: '16px 18px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div className="eyebrow">
+                  30 days · {formatMoney(balance)} available
+                </div>
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
+                  letterSpacing: '0.12em', textTransform: 'uppercase',
+                  padding: '3px 8px',
+                  background: `var(--${tone}-light)`,
+                  color: `var(--${tone})`,
+                  border: `1px solid var(--${tone})`,
+                }}>
+                  {pillLabel}
+                </span>
+              </div>
+              <div style={{
+                display: 'flex', alignItems: 'baseline',
+                marginTop: '8px', gap: '10px', flexWrap: 'wrap',
+              }}>
+                <div className="amount t-28">{formatMoney(solvency.upcomingTotal)}</div>
+                <div className="t-12" style={{ color: 'var(--text-secondary)' }}>upcoming</div>
+                {solvency.status === 'underfunded' && (
+                  <div className="t-12" style={{ color: 'var(--danger)', fontWeight: 700, marginLeft: 'auto' }}>
+                    short {formatMoney(solvency.shortfall)}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Bill rows */}
+            <div style={{ borderTop: '1px solid var(--border-subtle)' }}>
+              {upcoming.map((u, i) => (
+                <div key={u.key} className="interactive-row" style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '10px 18px',
+                  borderBottom: i < upcoming.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                    <span className="t-16">{u.icon}</span>
+                    <span className="t-14" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name}</span>
+                    {u.source === 'projected' && (
+                      <span style={{
+                        fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700,
+                        letterSpacing: '0.12em', textTransform: 'uppercase',
+                        color: 'var(--text-secondary)',
+                        padding: '2px 6px',
+                        background: 'var(--bg-subtle)',
+                        border: '1px solid var(--border-subtle)',
+                      }}>EST</span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                    <span className="t-12" style={{ color: 'var(--text-secondary)' }}>{formatDate(u.due_date)}</span>
+                    <span className="t-14" style={{ fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums' }}>{formatMoney(u.amount)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Month nav + Add CTA */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -252,7 +336,7 @@ export default function EnvelopeDetail({ envelope, envelopes, transactions, mont
             href={`/envelopes/${envelope.envelope_id}?month=${prevKey}`}
             aria-label={`Previous month, ${monthLabel(prevKey)}`}
             style={{
-              width: '36px', height: '36px',
+              width: '44px', height: '44px',
               background: 'var(--bg-surface)',
               border: '1px solid var(--border-strong)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -261,9 +345,8 @@ export default function EnvelopeDetail({ envelope, envelopes, transactions, mont
           >
             <ChevronLeft size={18} />
           </Link>
-          <div style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: '15px', fontWeight: 700,
+          <div className="t-14" style={{
+            fontFamily: 'var(--font-sans)', fontWeight: 700,
             color: 'var(--text-primary)',
             padding: '0 8px',
             letterSpacing: '-0.01em',
@@ -275,7 +358,7 @@ export default function EnvelopeDetail({ envelope, envelopes, transactions, mont
             href={`/envelopes/${envelope.envelope_id}?month=${nextKey}`}
             aria-label={`Next month, ${monthLabel(nextKey)}`}
             style={{
-              width: '36px', height: '36px',
+              width: '44px', height: '44px',
               background: 'var(--bg-surface)',
               border: '1px solid var(--border-strong)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -297,25 +380,25 @@ export default function EnvelopeDetail({ envelope, envelopes, transactions, mont
           {monthSpend > 0 && (
             <div className="card" style={{ width: '180px', padding: '14px 16px', borderLeft: '4px solid var(--danger)' }}>
               <div className="eyebrow">Spent</div>
-              <div className="amount" style={{ fontSize: '22px', marginTop: '6px' }}>{formatMoney(monthSpend)}</div>
+              <div className="amount t-20" style={{ marginTop: '6px' }}>{formatMoney(monthSpend)}</div>
             </div>
           )}
           {monthAllocate > 0 && (
             <div className="card" style={{ width: '180px', padding: '14px 16px', borderLeft: '4px solid var(--success)' }}>
               <div className="eyebrow">Allocated</div>
-              <div className="amount" style={{ fontSize: '22px', marginTop: '6px' }}>{formatMoney(monthAllocate)}</div>
+              <div className="amount t-20" style={{ marginTop: '6px' }}>{formatMoney(monthAllocate)}</div>
             </div>
           )}
           {monthIncoming > 0 && (
             <div className="card" style={{ width: '180px', padding: '14px 16px', borderLeft: '4px solid var(--text-secondary)' }}>
               <div className="eyebrow">Transferred In</div>
-              <div className="amount" style={{ fontSize: '22px', marginTop: '6px' }}>{formatMoney(monthIncoming)}</div>
+              <div className="amount t-20" style={{ marginTop: '6px' }}>{formatMoney(monthIncoming)}</div>
             </div>
           )}
           {monthOutgoing > 0 && (
             <div className="card" style={{ width: '180px', padding: '14px 16px', borderLeft: '4px solid var(--text-secondary)' }}>
               <div className="eyebrow">Transferred Out</div>
-              <div className="amount" style={{ fontSize: '22px', marginTop: '6px' }}>{formatMoney(monthOutgoing)}</div>
+              <div className="amount t-20" style={{ marginTop: '6px' }}>{formatMoney(monthOutgoing)}</div>
             </div>
           )}
         </div>
@@ -323,13 +406,20 @@ export default function EnvelopeDetail({ envelope, envelopes, transactions, mont
 
       {/* Transactions */}
       {visibleTransactions.length === 0 ? (
-        <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
-          <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
-          <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
-            Nothing in {monthLabelStr}
+        <div className="card" style={{ padding: '56px 24px', textAlign: 'center' }}>
+          <div style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '11px', fontWeight: 600,
+            letterSpacing: '0.24em', textTransform: 'uppercase',
+            color: 'var(--text-disabled)',
+            marginBottom: '14px',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden', textOverflow: 'clip',
+          }}>
+            ─────  NO ACTIVITY  ─────
           </div>
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            No transactions logged for this envelope in this month.
+          <div className="t-14" style={{ color: 'var(--text-secondary)' }}>
+            Nothing logged in {monthLabelStr}.
           </div>
         </div>
       ) : (
@@ -351,13 +441,15 @@ export default function EnvelopeDetail({ envelope, envelopes, transactions, mont
                   : 'var(--surface-raised)',
                 border: '1px solid var(--border-subtle)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--font-mono)', fontSize: '14px', fontWeight: 700,
                 color: tx.type === 'spend' ? 'var(--danger)'
                   : tx.type === 'allocate' ? 'var(--success)'
                   : 'var(--text-secondary)',
                 flexShrink: 0,
               }}>
-                {tx.type === 'spend' ? '−' : tx.type === 'allocate' ? '+' : tx.type === 'transfer_in' ? '↘' : '↗'}
+                {tx.type === 'spend' ? <Minus size={16} strokeWidth={2.5} />
+                  : tx.type === 'allocate' ? <Plus size={16} strokeWidth={2.5} />
+                  : tx.type === 'transfer_in' ? <ArrowDownLeft size={16} strokeWidth={2.5} />
+                  : <ArrowUpRight size={16} strokeWidth={2.5} />}
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>
