@@ -67,14 +67,24 @@ export default async function HomePage() {
     overdueCount: (unpaidInstances as any[]).filter(i => i.due_date < today).length,
   } : null
 
+  // This month's spend per envelope — feeds spending-pace insights
+  const { data: monthSpends } = await supabase
+    .from('transactions')
+    .select('envelope_id, amount, type, transaction_date, merchant')
+    .eq('household_id', householdId)
+    .eq('type', 'spend')
+    .gte('transaction_date', monthStart)
+    .lte('transaction_date', monthEnd)
+
   return (
     <AppShell profile={profile}>
       <div className="animate-fade-in">
-        <EnvelopeDashboard 
-          balances={balances || []} 
+        <EnvelopeDashboard
+          balances={balances || []}
           recentTransactions={recentTransactions || []}
           upcomingBills={upcomingBills || []}
           billsSummary={billsSummary}
+          monthSpends={(monthSpends as any) || []}
         />
       </div>
     </AppShell>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import type { EnvelopeBalance, Transaction } from '@/lib/supabase/database.types'
+import { spendingPaceAll, type InsightTransaction } from '@/lib/insights'
 import AddTransactionModal from './AddTransactionModal'
 import EnvelopeModal from './EnvelopeModal'
 import TransferModal from './TransferModal'
@@ -24,6 +25,7 @@ interface Props {
   })[]
   upcomingBills?: any[]
   billsSummary?: BillSummary | null
+  monthSpends?: InsightTransaction[]
 }
 
 function formatMoney(n: number) {
@@ -286,7 +288,7 @@ function ActivityFeed({ transactions, bills, balances }: { transactions: any[], 
   )
 }
 
-export default function EnvelopeDashboard({ balances, recentTransactions, upcomingBills = [], billsSummary }: Props) {
+export default function EnvelopeDashboard({ balances, recentTransactions, upcomingBills = [], billsSummary, monthSpends = [] }: Props) {
   const router = useRouter()
   const supabase = createClient()
 
@@ -327,6 +329,21 @@ export default function EnvelopeDashboard({ balances, recentTransactions, upcomi
   const lowBudget = balances.filter(e => !e.archived && !e.is_goal && e.budget_amount > 0 && (e.balance / e.budget_amount) < 0.15 && e.balance >= 0)
   if (lowBudget.length > 0 && overBudget.length === 0) {
     insights.push({ type: 'warning', icon: TrendingUp, title: `Low funds in ${lowBudget.length} categories`, sub: lowBudget.map(e => e.name).join(', ') })
+  }
+  // Spending pace — envelopes trending over budget at the current run rate
+  // (already-overspent ones are covered by `overBudget` above, so only flag will_exceed)
+  const willExceed = spendingPaceAll(balances.filter(e => !e.archived), monthSpends)
+    .filter(p => p.status === 'will_exceed')
+  if (willExceed.length > 0) {
+    const top = willExceed[0]
+    insights.push({
+      type: 'warning',
+      icon: TrendingUp,
+      title: willExceed.length === 1 ? `${top.name} pacing over` : `${willExceed.length} envelopes pacing over`,
+      sub: top.overspendDay
+        ? `${top.name}: over by day ${top.overspendDay} (~${formatMoney(top.projectedTotal - top.budget)} over)`
+        : willExceed.map(p => p.name).join(', '),
+    })
   }
   const goalsInProgress = balances.filter(e => !e.archived && e.is_goal && e.target_amount && e.balance < e.target_amount)
   if (goalsInProgress.length > 0) {
